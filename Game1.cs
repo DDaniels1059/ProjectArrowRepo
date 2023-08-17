@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using MGResolutionExample;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
@@ -8,6 +9,28 @@ namespace ProjectDelta
     {
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
+        private int speed = 300;
+        private KeyboardState kStateOld = Keyboard.GetState();
+        private MouseState mStateOld = Mouse.GetState();
+        public SpriteFont _gameFont;
+
+
+        private Screen screen;
+        private Vector2 VirtualMousePosition;
+        private Vector2 WorldMousePosition;
+
+
+        //  Just a rectangle to represent a flat surface, or floor in our world
+        private Rectangle _screenRect;
+        private Rectangle _playerRect;
+        private Rectangle _npcRect;
+        private Rectangle _buttonRect;
+
+        //  A 1x1 pixel that will be used to draw the screen and player texture.
+        private Texture2D _pixel;
+
+        //  The camera
+        private Basic2DCamera _camera;
 
         public Game1()
         {
@@ -18,16 +41,29 @@ namespace ProjectDelta
 
         protected override void Initialize()
         {
-            // TODO: Add your initialization logic here
-
+            screen = new Screen(_graphics, GraphicsDevice, Window);
             base.Initialize();
         }
 
         protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
+            _gameFont = Content.Load<SpriteFont>("Misc/gameFont");
 
-            // TODO: use this.Content to load your game content here
+            _pixel = new Texture2D(GraphicsDevice, 1, 1);
+            _pixel.SetData<Color>(new Color[] { Color.White });
+
+            _screenRect = new Rectangle(0, 0, screen.Width, screen.Height);
+
+            //  Setting the player to a 32x32 sprite, but setting the position to be in the center of the screen rect
+            //  which is why width and height are halved and then 16 (half the player size) subtracted
+            _playerRect = new Rectangle((screen.Width / 2) - 4, (screen.Height / 2) - 4, 8, 8);
+
+            _npcRect = new Rectangle((screen.Width / 2), (screen.Height / 2), 8, 8);
+
+
+            //  Create camera
+            _camera = new(screen.Width, screen.Height);
         }
 
         protected override void Update(GameTime gameTime)
@@ -35,16 +71,131 @@ namespace ProjectDelta
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            // TODO: Add your update logic here
+            float deltatime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
+            KeyboardState kState = Keyboard.GetState();
+            MouseState mState = Mouse.GetState();
+
+            // Convert the screen mouse position to virtual resolution *For HUD*
+            Vector2 MousePosition = new Vector2(mState.X, mState.Y);
+            VirtualMousePosition = screen.ConvertScreenToVirtualResolution(MousePosition);
+
+            // Transform mouse position to camera space
+            WorldMousePosition = _camera.ScreenToCamera(VirtualMousePosition);
+
+            // Temporary Button For Testing Zoom and VirtualMousePosition
+            _buttonRect = new Rectangle(screen.Width - 22, 5, 16, 16);
+
+
+            //  Move player up/down/left/right
+            if (kState.IsKeyDown(Keys.Left))
+            {
+                _playerRect.X -= (int)(speed * deltatime);
+            }
+            else if (kState.IsKeyDown(Keys.Right))
+            {
+                _playerRect.X += (int)(speed * deltatime);
+            }
+            else if (kState.IsKeyDown(Keys.Up))
+            {
+                _playerRect.Y -= (int)(speed * deltatime);
+            }
+            else if (kState.IsKeyDown(Keys.Down))
+            {
+                _playerRect.Y += (int)(speed * deltatime);
+            }
+
+            if (kState.IsKeyDown(Keys.D1) && kStateOld.IsKeyUp(Keys.D1))
+            {
+                screen.SetFullscreen();
+            }
+
+            if (kState.IsKeyDown(Keys.D2) && kStateOld.IsKeyUp(Keys.D2))
+            {
+                screen.ViewPadding = 0;
+                screen.SetWindowed(screen.Width * 2, screen.Height * 2);
+            }
+
+            if (kState.IsKeyDown(Keys.D4) && kStateOld.IsKeyUp(Keys.D4))
+            {
+                screen.ViewPadding = 0;
+                screen.SetWindowed(screen.Width * 4, screen.Height * 4);
+            }
+
+            // ToDo Scale *Works*? but gets reset by the ClientSizeChanged.
+            if (kState.IsKeyDown(Keys.D6) && kStateOld.IsKeyUp(Keys.D6))
+            {
+                screen.ViewPadding = 0;
+                screen.SetWindowed(screen.Width * 6, screen.Height * 6);
+            }
+
+
+            if (_buttonRect.Contains(VirtualMousePosition))
+            {
+                if (mState.LeftButton == ButtonState.Pressed && mStateOld.LeftButton == ButtonState.Released)
+                {
+                    _camera.Zoom /= new Vector2(2f);
+                }
+
+                if (mState.RightButton == ButtonState.Pressed && mStateOld.RightButton == ButtonState.Released)
+                {
+                    _camera.Zoom *= new Vector2(2f);
+                }
+            }
+
+
+            //  Ensure camera is centered on player
+            _camera.Position = _playerRect.Location.ToVector2() + (new Vector2(_playerRect.Size.X, _playerRect.Size.Y) * 0.5f);
+            _camera.CenterOrigin();
+
+            mStateOld = mState;
+            kStateOld = kState;
             base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            // TODO: Add your drawing code here
+            GraphicsDevice.Viewport = screen.Viewport;
+
+
+            GraphicsDevice.Clear(Color.Black);
+
+            _spriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.AlphaBlend, SamplerState.PointClamp, null, null, null, transformMatrix: _camera.TransformationMatrix * screen.ScreenScaleMatrix);      
+
+            _spriteBatch.Draw(_pixel, new Rectangle(0, 0, 640, 320), null, Color.Orange);
+            _spriteBatch.Draw(_pixel, _playerRect, null, Color.Blue);
+            _spriteBatch.Draw(_pixel, _npcRect, null, Color.Green, 0f, Vector2.Zero, SpriteEffects.None, 0f);
+
+            _spriteBatch.End();
+
+            // Draw UI elements (buttons and text)
+            _spriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.AlphaBlend, SamplerState.PointClamp, null, null, null, transformMatrix: screen.ScreenScaleMatrix);
+            _spriteBatch.Draw(_pixel, _buttonRect, null, Color.Gray);
+
+
+            // Any SpriteBatch calls (those above as well) will not show up Visible unless Winow Size is Equal to or below the Virtual Resolution, 320x180 unless
+            // the below criteria are met. (Removing The Screen Scale Matrix seems to fix this, though not really a fix since it takes out the whole point of this Test Space)
+
+            // With a virtual resolution of 320x180 and My Physical Display being 1920x1080, the largest LayerDepth that can be used until the Batch Call goes invisible is .170f (Unless in Fullscreen *PRESS D1*, then it is around .160f)
+            // If the virtual resolution is lower, that will directly cause the LayerDepth needing to be lowered
+
+            // I tested with a 2k monitor, and at a Virtual resolution of 320x180 the LayerDepth at .170f is too high, and the SpriteBatch call will go 
+            // invisible once the backbuffer width / height goes above the known working res of 1920x1080. I assume this has to do with the viewport, so I am trying to look into it now.
+            // It is odd though, since you would think layer depth would be seperate from this since in the viewport you set it to 0-1
+            // I have tried making the Layer max in the viewport Higher, to no success.
+
+
+            // FIX: When Creating the matrix scale in the screen class, we need to use the 3 overloads, x scale, y scale, and z scale. x&y will just be what we already use, but we want Z index to stay the same
+            // so it doesnt affect the scaling. So put that to 1.
+
+            _spriteBatch.DrawString(_gameFont, "WorldMousePos:" + WorldMousePosition.ToString(), new Vector2(5, 5), Color.White, 0f, Vector2.Zero, .035f, SpriteEffects.None, 1f);
+            _spriteBatch.DrawString(_gameFont, "VirtualMousePos:" + VirtualMousePosition.ToString(), new Vector2(5, 20), Color.White, 0f, Vector2.Zero, .035f, SpriteEffects.None, 1f);
+
+
+
+            _spriteBatch.End();
+
 
             base.Draw(gameTime);
         }
