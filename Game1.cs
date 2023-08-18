@@ -9,7 +9,7 @@ namespace ProjectDelta
     {
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
-        private int speed = 300;
+        private int speed = 100;
         private KeyboardState kStateOld = Keyboard.GetState();
         private MouseState mStateOld = Mouse.GetState();
         public SpriteFont _gameFont;
@@ -28,6 +28,8 @@ namespace ProjectDelta
 
         //  A 1x1 pixel that will be used to draw the screen and player texture.
         private Texture2D _pixel;
+        private Texture2D _player;
+        private float rotation = 0.01f;
 
         //  The camera
         private Basic2DCamera _camera;
@@ -49,6 +51,7 @@ namespace ProjectDelta
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             _gameFont = Content.Load<SpriteFont>("Misc/gameFont");
+            _player = Content.Load<Texture2D>("Misc/Player");
 
             _pixel = new Texture2D(GraphicsDevice, 1, 1);
             _pixel.SetData<Color>(new Color[] { Color.White });
@@ -57,13 +60,15 @@ namespace ProjectDelta
 
             //  Setting the player to a 32x32 sprite, but setting the position to be in the center of the screen rect
             //  which is why width and height are halved and then 16 (half the player size) subtracted
-            _playerRect = new Rectangle((screen.Width / 2) - 4, (screen.Height / 2) - 4, 8, 8);
+            _playerRect = new Rectangle((screen.Width / 2) - 8, (screen.Height / 2) - 8, 16, 16);
 
-            _npcRect = new Rectangle((screen.Width / 2), (screen.Height / 2), 8, 8);
+
+            _npcRect = new Rectangle((screen.Width / 2), (screen.Height / 2), 16, 16);
 
 
             //  Create camera
             _camera = new(screen.Width, screen.Height);
+            _camera.Zoom *= new Vector2(2f);
         }
 
         protected override void Update(GameTime gameTime)
@@ -107,6 +112,7 @@ namespace ProjectDelta
 
             if (kState.IsKeyDown(Keys.D1) && kStateOld.IsKeyUp(Keys.D1))
             {
+                screen.ViewPadding = screen.ViewPadding;
                 screen.SetFullscreen();
             }
 
@@ -121,13 +127,8 @@ namespace ProjectDelta
                 screen.ViewPadding = 0;
                 screen.SetWindowed(screen.Width * 4, screen.Height * 4);
             }
-
             // ToDo Scale *Works*? but gets reset by the ClientSizeChanged.
-            if (kState.IsKeyDown(Keys.D6) && kStateOld.IsKeyUp(Keys.D6))
-            {
-                screen.ViewPadding = 0;
-                screen.SetWindowed(screen.Width * 6, screen.Height * 6);
-            }
+
 
 
             if (_buttonRect.Contains(VirtualMousePosition))
@@ -145,8 +146,11 @@ namespace ProjectDelta
 
 
             //  Ensure camera is centered on player
+            //_camera.Rotation += 0.01f;
             _camera.Position = _playerRect.Location.ToVector2() + (new Vector2(_playerRect.Size.X, _playerRect.Size.Y) * 0.5f);
             _camera.CenterOrigin();
+
+            rotation += 0.01f;
 
             mStateOld = mState;
             kStateOld = kState;
@@ -159,13 +163,22 @@ namespace ProjectDelta
             GraphicsDevice.Viewport = screen.Viewport;
 
 
-            GraphicsDevice.Clear(Color.Black);
+            GraphicsDevice.Clear(Color.Red);
 
             _spriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.AlphaBlend, SamplerState.PointClamp, null, null, null, transformMatrix: _camera.TransformationMatrix * screen.ScreenScaleMatrix);      
 
-            _spriteBatch.Draw(_pixel, new Rectangle(0, 0, 640, 320), null, Color.Orange);
-            _spriteBatch.Draw(_pixel, _playerRect, null, Color.Blue);
-            _spriteBatch.Draw(_pixel, _npcRect, null, Color.Green, 0f, Vector2.Zero, SpriteEffects.None, 0f);
+            _spriteBatch.Draw(_pixel, new Rectangle(0, 0, 640, 320), null, Color.Orange, 0f, Vector2.Zero, SpriteEffects.None, 0f);
+            //_spriteBatch.Draw(_pixel, _playerRect, null, Color.Blue);
+            Vector2 origin1 = new Vector2 (_playerRect.X - 8, _playerRect.Y - 8);
+            float depth1 = origin1.Y / screen.Viewport.Width;
+            depth1 = depth1 * 0.01f;
+
+            Vector2 origin2 = new Vector2(_npcRect.X - 8, _npcRect.Y - 14);
+            float depth2 = origin2.Y / screen.Viewport.Width;
+            depth2 = depth2 * 0.01f;
+
+            _spriteBatch.Draw(_player, _playerRect, null, Color.White, 0f, Vector2.Zero, SpriteEffects.None, depth1);
+            _spriteBatch.Draw(_pixel, _npcRect, null, Color.Green, rotation, new Vector2(0.5f, 0.5f), SpriteEffects.None, depth2);
 
             _spriteBatch.End();
 
@@ -189,8 +202,8 @@ namespace ProjectDelta
             // FIX: When Creating the matrix scale in the screen class, we need to use the 3 overloads, x scale, y scale, and z scale. x&y will just be what we already use, but we want Z index to stay the same
             // so it doesnt affect the scaling. So put that to 1.
 
-            _spriteBatch.DrawString(_gameFont, "WorldMousePos:" + WorldMousePosition.ToString(), new Vector2(5, 5), Color.White, 0f, Vector2.Zero, .035f, SpriteEffects.None, 1f);
-            _spriteBatch.DrawString(_gameFont, "VirtualMousePos:" + VirtualMousePosition.ToString(), new Vector2(5, 20), Color.White, 0f, Vector2.Zero, .035f, SpriteEffects.None, 1f);
+            _spriteBatch.DrawString(_gameFont, "WorldMousePos:" + ((int)WorldMousePosition.X).ToString() + " " + ((int)WorldMousePosition.Y).ToString(), new Vector2((int)5, (int)5), Color.White, 0f, Vector2.Zero, .02f, SpriteEffects.None, 1f);
+            _spriteBatch.DrawString(_gameFont, "VirtualMousePos:" + ((int)VirtualMousePosition.X).ToString() + " " + ((int)VirtualMousePosition.Y).ToString(), new Vector2((int)5, (int)20), Color.White, 0f, Vector2.Zero, .02f, SpriteEffects.None, 1f);
 
 
 

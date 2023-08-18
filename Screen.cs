@@ -97,6 +97,7 @@ namespace ProjectDelta
 
         public void SetFullscreen()
         {
+
             _isResizing = true;
             _graphics.PreferredBackBufferWidth = _graphics.GraphicsDevice.Adapter.CurrentDisplayMode.Width;
             _graphics.PreferredBackBufferHeight = _graphics.GraphicsDevice.Adapter.CurrentDisplayMode.Height;
@@ -120,12 +121,12 @@ namespace ProjectDelta
             }
         }
 
-        public Vector2 ConvertScreenToVirtualResolution(Vector2 screenPosition)
+        public Vector2 ConvertScreenToVirtualResolution(Vector2 mousePosition)
         {
             // Calculate the position within the viewport
             Vector2 viewportPosition = new Vector2(
-                (screenPosition.X - Viewport.X) / Viewport.Width,
-                (screenPosition.Y - Viewport.Y) / Viewport.Height
+                (mousePosition.X - Viewport.X) / Viewport.Width,
+                (mousePosition.Y - Viewport.Y) / Viewport.Height
             );
 
             // Convert to the virtual resolution coords
@@ -160,8 +161,6 @@ namespace ProjectDelta
             ViewHeight -= (int)(aspect * ViewPadding * 2);
 
             // update screen matrix
-
-
             var xscale = ViewWidth / (float)Width;
             var yscale = ViewHeight / (float)Height;
 
