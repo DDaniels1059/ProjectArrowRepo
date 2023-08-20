@@ -68,7 +68,7 @@ namespace ProjectDelta
 
             //  Create camera
             _camera = new(screen.Width, screen.Height);
-            _camera.Zoom *= new Vector2(2f);
+            _camera.Zoom *= new Vector2(1f);
         }
 
         protected override void Update(GameTime gameTime)
@@ -93,42 +93,58 @@ namespace ProjectDelta
 
 
             //  Move player up/down/left/right
-            if (kState.IsKeyDown(Keys.Left))
+            if (kState.IsKeyDown(Keys.A))
             {
                 _playerRect.X -= (int)(speed * deltatime);
             }
-            else if (kState.IsKeyDown(Keys.Right))
+            else if (kState.IsKeyDown(Keys.D))
             {
                 _playerRect.X += (int)(speed * deltatime);
             }
-            else if (kState.IsKeyDown(Keys.Up))
+            else if (kState.IsKeyDown(Keys.W))
             {
                 _playerRect.Y -= (int)(speed * deltatime);
             }
-            else if (kState.IsKeyDown(Keys.Down))
+            else if (kState.IsKeyDown(Keys.S))
             {
                 _playerRect.Y += (int)(speed * deltatime);
             }
 
             if (kState.IsKeyDown(Keys.D1) && kStateOld.IsKeyUp(Keys.D1))
             {
-                screen.ViewPadding = screen.ViewPadding;
                 screen.SetFullscreen();
             }
-
             if (kState.IsKeyDown(Keys.D2) && kStateOld.IsKeyUp(Keys.D2))
             {
-                screen.ViewPadding = 0;
                 screen.SetWindowed(screen.Width * 2, screen.Height * 2);
             }
-
             if (kState.IsKeyDown(Keys.D4) && kStateOld.IsKeyUp(Keys.D4))
             {
-                screen.ViewPadding = 0;
                 screen.SetWindowed(screen.Width * 4, screen.Height * 4);
             }
-            // ToDo Scale *Works*? but gets reset by the ClientSizeChanged.
+            if (kState.IsKeyDown(Keys.D6) && kStateOld.IsKeyUp(Keys.D6))
+            {
+                screen.SetWindowed(screen.Width * 6, screen.Height * 6);
+            }
+            if (kState.IsKeyDown(Keys.D8) && kStateOld.IsKeyUp(Keys.D8))
+            {
+                screen.SetWindowed(screen.Width * 8, screen.Height * 8);
+            }
+            if (kState.IsKeyDown(Keys.D0) && kStateOld.IsKeyUp(Keys.D0))
+            {
+                screen.SetWindowed(screen.Width * 10, screen.Height * 10);
+            }
+            // ToDo Scale *Works*? but gets reset by the ClientSizeChanged when the screen is Maximized..
 
+            if (kState.IsKeyDown(Keys.Right) && kStateOld.IsKeyUp(Keys.Right))
+            {
+                screen.ViewPadding += 10;
+            }
+
+            if (kState.IsKeyDown(Keys.Left) && kStateOld.IsKeyUp(Keys.Left))
+            {
+                screen.ViewPadding -= 10;
+            }
 
 
             if (_buttonRect.Contains(VirtualMousePosition))
@@ -167,8 +183,9 @@ namespace ProjectDelta
 
             _spriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.AlphaBlend, SamplerState.PointClamp, null, null, null, transformMatrix: _camera.TransformationMatrix * screen.ScreenScaleMatrix);      
 
-            _spriteBatch.Draw(_pixel, new Rectangle(0, 0, 640, 320), null, Color.Orange, 0f, Vector2.Zero, SpriteEffects.None, 0f);
-            //_spriteBatch.Draw(_pixel, _playerRect, null, Color.Blue);
+            _spriteBatch.Draw(_pixel, _screenRect, null, Color.Orange, 0f, Vector2.Zero, SpriteEffects.None, 0f);
+
+            //Dont Normally Do Calculations in Draw, this is just for testing.
             Vector2 origin1 = new Vector2 (_playerRect.X - 8, _playerRect.Y - 8);
             float depth1 = origin1.Y / screen.Viewport.Width;
             depth1 = depth1 * 0.01f;
@@ -205,10 +222,7 @@ namespace ProjectDelta
             _spriteBatch.DrawString(_gameFont, "WorldMousePos:" + ((int)WorldMousePosition.X).ToString() + " " + ((int)WorldMousePosition.Y).ToString(), new Vector2((int)5, (int)5), Color.White, 0f, Vector2.Zero, .02f, SpriteEffects.None, 1f);
             _spriteBatch.DrawString(_gameFont, "VirtualMousePos:" + ((int)VirtualMousePosition.X).ToString() + " " + ((int)VirtualMousePosition.Y).ToString(), new Vector2((int)5, (int)20), Color.White, 0f, Vector2.Zero, .02f, SpriteEffects.None, 1f);
 
-
-
             _spriteBatch.End();
-
 
             base.Draw(gameTime);
         }

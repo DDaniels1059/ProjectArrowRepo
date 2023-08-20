@@ -10,7 +10,6 @@ namespace ProjectDelta
 {
     internal class Screen
     {
-        //  Screen size
         public int Width { get; private set; }
         public int Height { get; private set; }
         public int ViewWidth { get; private set; }
@@ -91,14 +90,14 @@ namespace ProjectDelta
                 _graphics.PreferredBackBufferHeight = Window.ClientBounds.Height;
                 //  Now update the view
                 UpdateView();
-                _isResizing = false;
+                _isResizing = false;    
             }
         }
 
         public void SetFullscreen()
         {
-
             _isResizing = true;
+            ViewPadding = _viewPadding;
             _graphics.PreferredBackBufferWidth = _graphics.GraphicsDevice.Adapter.CurrentDisplayMode.Width;
             _graphics.PreferredBackBufferHeight = _graphics.GraphicsDevice.Adapter.CurrentDisplayMode.Height;
             _graphics.IsFullScreen = true;
@@ -169,12 +168,12 @@ namespace ProjectDelta
             // update viewport
             Viewport = new Viewport
             {
-                X = (int)(screenWidth / 2 - ViewWidth / 2),
-                Y = (int)(screenHeight / 2 - ViewHeight / 2),
+                X = (int)(screenWidth / 2f - ViewWidth / 2),
+                Y = (int)(screenHeight / 2f - ViewHeight / 2),
                 Width = ViewWidth,
                 Height = ViewHeight,
-                MinDepth = 0,
-                MaxDepth = 1,
+                MinDepth = 0f,
+                MaxDepth = 1f,
             };
         }
     }
