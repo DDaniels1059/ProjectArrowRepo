@@ -2,7 +2,7 @@ using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace MGResolutionExample;
+namespace ProjectDelta.Helpers;
 
 public sealed class Basic2DCamera
 {
@@ -199,7 +199,7 @@ public sealed class Basic2DCamera
         _rotation = 0.0f;
         _origin = Vector2.Zero;
         _zoom = Vector2.One;
-        
+
         Viewport = viewport;
         UpdateMatrices();
     }
