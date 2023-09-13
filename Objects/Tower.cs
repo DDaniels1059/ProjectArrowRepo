@@ -11,6 +11,8 @@ namespace ProjectDelta.Objects
     public class Tower : GameObject
     {
         public Vector2 linePosition;
+        public bool IsConnected { get; private set; }
+
         public Tower(InputHelper inputHelper)
         {
             texture = GameData.TextureMap["Tower"];
@@ -19,6 +21,16 @@ namespace ProjectDelta.Objects
             origin = new Vector2((int)(position.X + GameData.TileSize / 2), (int)(position.Y + 43));
             depth = Helper.GetDepth(origin);
             collider = new Rectangle((int)position.X, (int)position.Y + 40, texture.Width, texture.Width / 3);
+        }
+
+        public void Connect()
+        {
+            IsConnected = true;
+        }
+
+        public void Disconnect()
+        {
+            IsConnected = false;
         }
     }
 }

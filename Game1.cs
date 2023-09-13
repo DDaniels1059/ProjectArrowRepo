@@ -82,35 +82,7 @@ namespace ProjectDelta
                 inputHelper.Update(_screen, _camera);
                 float deltatime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-
-                // Possible Start To Method To Create Power Lines
-                if (inputHelper.IsKeyPress(Keys.Z))
-                {
-                    if (isFirstClick)
-                    {
-                        firstpoint = new Vector2(inputHelper.WorldMousePosition.X, inputHelper.WorldMousePosition.Y);
-                        firsttower = new Tower(inputHelper);
-                        GameData.gameObjects.Add(firsttower);
-                        isFirstClick = false;
-                    }
-                    else
-                    {
-                        lastpoint = new Vector2(inputHelper.WorldMousePosition.X, inputHelper.WorldMousePosition.Y);
-                        lasttower = new Tower(inputHelper);
-                        GameData.gameObjects.Add(lasttower);
-
-                        // Create the power line and associate it with the towers.
-                        PowerLine powerLine = new PowerLine(firsttower, lasttower);
-                        GameData.powerLines.Add(powerLine);
-                        powerLine.CreateLine();
-                        isFirstClick = true;
-                    }
-                }
-
                 //CreateLine(firsttower.linePosition, lasttower.linePosition);
-
-                #region Testing
-
 
                 if (inputHelper.IsKeyDown(Keys.Escape))
                 {
@@ -128,7 +100,7 @@ namespace ProjectDelta
                     }
                 }
 
-                
+
 
                 //if (inputHelper.IsKeyDown(Keys.Right))
                 //    currtype = Itemtypes.gears;
@@ -157,34 +129,59 @@ namespace ProjectDelta
                 //    GameData.gameObjects.Add(newObject);
                 //}
 
-                // Testing
-                if (inputHelper.IsMouseButtonPress(MouseButtons.RightButton))
+                #region PowerLines
+
+                // Create Power Line Pair
+                if (inputHelper.IsKeyPress(Keys.Z))
                 {
-                    // Check if there's at least one power line.
-                    if (GameData.powerLines.Count > 0)
+                    if (isFirstClick)
                     {
-                        // Get the first power line.
-                        PowerLine firstPowerLine = GameData.powerLines[0];
+                        //Create First Tower
+                        firstpoint = new Vector2(inputHelper.WorldMousePosition.X, inputHelper.WorldMousePosition.Y);
+                        firsttower = new Tower(inputHelper);
+                        GameData.gameObjects.Add(firsttower);
+                        isFirstClick = false;
+                    }
+                    else
+                    {
+                        //Create Last Tower
+                        lastpoint = new Vector2(inputHelper.WorldMousePosition.X, inputHelper.WorldMousePosition.Y);
+                        lasttower = new Tower(inputHelper);
+                        GameData.gameObjects.Add(lasttower);
 
-                        // Remove the associated towers.
-                        firstPowerLine.RemoveTower(firsttower);
-
-                        // Remove the power line itself.
-                        GameData.powerLines.Remove(firstPowerLine);
+                        // Create the power line and associate it with the towers.
+                        PowerLine powerLine = new PowerLine(firsttower, lasttower);
+                        GameData.powerLines.Add(powerLine);
+                        powerLine.CreateLine();
+                        isFirstClick = true;
                     }
                 }
-                #endregion
 
-                //Ensure camera is centered on player
-                _player.Update(gameTime, deltatime, inputHelper);
-                _camera.Position = new Vector2(_player.Position.X + 8, _player.Position.Y + 8);
-                _camera.CenterOrigin();
+                // Remove Power Line Pair
+                if (inputHelper.IsMouseButtonPress(MouseButtons.RightButton))
+                {
+                    if (GameData.powerLines.Count > 0)
+                    {
+                        // Get the first power line. (TEMP)
+                        // We Remove Both Towers ATM.
+                        PowerLine firstPowerLine = GameData.powerLines[0];
+                        firstPowerLine.RemoveTower(firsttower);
+                        firstPowerLine.RemoveTower(lasttower);
+                    }
+                }
+
+                #endregion
 
                 for (int i = 0; i < GameData.ButtonList.Count; i++)
                 {
                     Button button = GameData.ButtonList[i];
                     button.Update(inputHelper.VirtualMousePosition, inputHelper, deltatime, button.location);
                 }
+
+                //Ensure camera is centered on player
+                _player.Update(gameTime, deltatime, inputHelper);
+                _camera.Position = new Vector2(_player.Position.X + 8, _player.Position.Y + 8);
+                _camera.CenterOrigin();
 
                 base.Update(gameTime);
             }
@@ -319,32 +316,5 @@ namespace ProjectDelta
                 _camera.Zoom *= new Vector2(2f);
             }
         }
-
-        // For Creating A Line That Follows The Player Not Needed ATM
-        // Initialize         private Vector2[] lineVertices;
-        // Create In Update   CreateCharLine(new Vector2(100, 200),  new Vector2(_player.Position.X + 7, _player.Position.Y + 8));
-
-        //private void CreateCharLine(Vector2 StartPoint, Vector2 EndPoint)
-        //{
-        //    int numberOfSegments = 150; // Adjust as needed
-        //    float sagAmount = 15f; // Adjust this value to control the sag
-        //    lineVertices = new Vector2[numberOfSegments + 1];
-
-        //    for (int i = 0; i <= numberOfSegments; i++)
-        //    {
-        //        float t = (float)i / numberOfSegments;
-        //        float y = MathHelper.Lerp(StartPoint.Y, EndPoint.Y, t);
-        //        float x = MathHelper.Lerp(StartPoint.X, EndPoint.X, t);
-
-        //        // Add a slight sine wave effect to create the sag in the middle
-        //        if (i > 0 && i < numberOfSegments)
-        //        {
-        //            float sagOffset = sagAmount * (float)Math.Sin(t * MathHelper.Pi);
-        //            y += sagOffset;
-        //        }
-
-        //        lineVertices[i] = new Vector2(x, y);
-        //    }
-        //}
     }
 }

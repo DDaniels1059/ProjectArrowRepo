@@ -12,7 +12,7 @@ namespace ProjectDelta.Objects
     {
         public Tower StartTower { get; }
         public Tower EndTower { get; }
-        public Vector2[] LineVertices; // Store line vertices here
+        public Vector2[] LineVertices;
 
         public PowerLine(Tower startTower, Tower endTower)
         {
@@ -23,10 +23,15 @@ namespace ProjectDelta.Objects
         // Remove a tower and its associated power lines.
         public void RemoveTower(Tower tower)
         {
+            if (StartTower == tower || EndTower == tower)
+            {
+                //GameData.powerLines.Remove(this);
+                GameData.gameObjects.Remove(tower);
 
-            GameData.powerLines.RemoveAll(line => line.StartTower == tower || line.EndTower == tower);
+                GameData.powerLines.RemoveAll(line => line.StartTower == tower || line.EndTower == tower);
+                //GameData.gameObjects.Remove(tower);
+            }
 
-            GameData.gameObjects.Remove(tower);
         }
 
 
