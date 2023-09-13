@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
@@ -44,9 +45,27 @@ namespace ProjectDelta.Helpers
             cursorPos.Y = currentMouseState.Y;
 
             // Transform Mouse Position to Our Virtual 320x180 Resolution
-            virtualMousePosition = _screen.ConvertScreenToVirtualResolution(cursorPos);
+            virtualMousePosition = ConvertScreenToVirtualResolution(_screen, cursorPos);
             // Transform Mouse Position to World Space
             worldMousePosition = _camera.ScreenToCamera(VirtualMousePosition);
+        }
+
+
+        public Vector2 ConvertScreenToVirtualResolution(Screen _screen, Vector2 mousePosition)
+        {
+            // Calculate the position within the viewport
+            Vector2 viewportPosition = new Vector2(
+                (mousePosition.X - _screen.Viewport.X) / _screen.Viewport.Width,
+                (mousePosition.Y - _screen.Viewport.Y) / _screen.Viewport.Height
+            );
+
+            // Convert to the virtual resolution coords
+            Vector2 virtualResolutionPosition = new Vector2(
+                viewportPosition.X * _screen.VirtualWidth,
+                viewportPosition.Y * _screen.VirtualHeight
+            );
+
+            return virtualResolutionPosition;
         }
 
         //check for keyboard key press, hold, and release

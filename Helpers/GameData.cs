@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using ProjectDelta.Objects;
 using System;
 using System.Collections.Generic;
 
@@ -18,6 +19,7 @@ namespace ProjectDelta.Helpers
         public static SpriteFont GameFont;
         public static List<Button> ButtonList;
         public static List<GameObject> gameObjects;
+        public static List<PowerLine> powerLines;
 
 
         public static void LoadData(ContentManager content, GraphicsDevice graphicsDevice)
@@ -51,6 +53,7 @@ namespace ProjectDelta.Helpers
             _pixel = new Texture2D(graphicsDevice, 1, 1);
             _pixel.SetData<Color>(new Color[] { Color.White });
 
+            powerLines = new List<PowerLine>();
             ButtonList = new List<Button>();
             gameObjects = new List<GameObject>();
             GameFont = content.Load<SpriteFont>("Misc/gameFont");

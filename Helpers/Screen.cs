@@ -70,6 +70,7 @@ namespace ProjectDelta.Helpers
             _graphics.IsFullScreen = false;
             _graphics.ApplyChanges();
 
+
             UpdateView();
         }
 
@@ -101,43 +102,30 @@ namespace ProjectDelta.Helpers
         public void SetFullscreen()
         {
             _isFullscreen = true;
-            //_isResizing = true;
+            _isResizing = true;
             ViewPadding = _viewPadding;
             _graphics.PreferredBackBufferWidth = _graphics.GraphicsDevice.Adapter.CurrentDisplayMode.Width;
             _graphics.PreferredBackBufferHeight = _graphics.GraphicsDevice.Adapter.CurrentDisplayMode.Height;
             _graphics.IsFullScreen = true;
             _graphics.ApplyChanges();
             Console.WriteLine("FULLSCREEN");
-            //_isResizing = false;
+            _isResizing = false;
         }
 
 
-        public void SetWindowed()
+        public void SetWindowed(int width, int height)
         {
-            _isFullscreen = false;
-            //_isResizing = true;
-            _graphics.PreferredBackBufferWidth = 1280;
-            _graphics.PreferredBackBufferHeight = 720;
-            _graphics.IsFullScreen = false;
-            _graphics.ApplyChanges();
-            //_isResizing = false;
-        }
-
-        public Vector2 ConvertScreenToVirtualResolution(Vector2 mousePosition)
-        {
-            // Calculate the position within the viewport
-            Vector2 viewportPosition = new Vector2(
-                (mousePosition.X - Viewport.X) / Viewport.Width,
-                (mousePosition.Y - Viewport.Y) / Viewport.Height
-            );
-
-            // Convert to the virtual resolution coords
-            Vector2 virtualResolutionPosition = new Vector2(
-                viewportPosition.X * VirtualWidth,
-                viewportPosition.Y * VirtualHeight
-            );
-
-            return virtualResolutionPosition;
+            if (width > 0 && height > 0)
+            {
+                _isFullscreen = false;
+                _isResizing = true;
+                _graphics.PreferredBackBufferWidth = width;
+                _graphics.PreferredBackBufferHeight = height;
+                _graphics.IsFullScreen = false;
+                _graphics.ApplyChanges();
+                Console.WriteLine("WINDOW-" + width + "x" + height);
+                _isResizing = false;
+            }
         }
 
         private void UpdateView()
@@ -146,36 +134,34 @@ namespace ProjectDelta.Helpers
             float screenHeight = GraphicsDevice.PresentationParameters.BackBufferHeight;
 
             // get View Size
-            if (screenWidth / VirtualWidth > screenHeight / VirtualHeight)
+            if (screenWidth / (float)VirtualWidth > screenHeight / (float)VirtualHeight)
             {
-                ViewWidth = (int)(screenHeight / VirtualHeight * VirtualWidth);
+                ViewWidth = (int)(screenHeight / (float)VirtualHeight * (float)VirtualWidth);
                 ViewHeight = (int)screenHeight;
             }
             else
             {
                 ViewWidth = (int)screenWidth;
-                ViewHeight = (int)(screenWidth / VirtualWidth * VirtualHeight);
+                ViewHeight = (int)(screenWidth / (float)VirtualWidth * (float)VirtualHeight);
             }
 
-            if (_isFullscreen)
-            {
-                // apply View Padding
-                var aspect = ViewHeight / (float)ViewWidth;
-                ViewWidth -= ViewPadding * 2;
-                ViewHeight -= (int)(aspect * ViewPadding * 2);
-            }
+            // apply View Padding
+            float aspect = (float)ViewHeight / (float)ViewWidth;
+            ViewWidth -= ViewPadding * 2;
+            ViewHeight -= (int)(aspect * (float)ViewPadding * 2f);
+
 
             // update screen matrix
-            var xscale = ViewWidth / (float)VirtualWidth;
-            var yscale = ViewHeight / (float)VirtualHeight;
+            var xscale = (float)ViewWidth / (float)VirtualWidth;
+            var yscale = (float)ViewHeight / (float)VirtualHeight;
 
-            ScreenScaleMatrix = Matrix.CreateScale(xscale, yscale, 1);
+            ScreenScaleMatrix = Matrix.CreateScale((float)xscale, (float)yscale, 1);
 
             // update viewport
             Viewport = new Viewport
             {
-                X = (int)(screenWidth / 2f - ViewWidth / 2),
-                Y = (int)(screenHeight / 2f - ViewHeight / 2),
+                X = (int)(screenWidth / 2f - (float)(ViewWidth / 2)),
+                Y = (int)(screenHeight / 2f - (float)(ViewHeight / 2)),
                 Width = ViewWidth,
                 Height = ViewHeight,
                 MinDepth = 0f,

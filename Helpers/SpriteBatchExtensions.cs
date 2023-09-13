@@ -33,6 +33,16 @@ namespace ProjectDelta.Helpers
             spriteBatch.DrawLine(bottomLeft, topLeft, color);
         }
 
+        public static void DrawFilledRect(this SpriteBatch spriteBatch, Rectangle rect, Color color)
+        {
+            // Create a 1x1 pixel texture filled with the specified color
+            Texture2D filledPixel = new Texture2D(spriteBatch.GraphicsDevice, 1, 1);
+            filledPixel.SetData(new[] { color });
+
+            // Draw the filled rectangle
+            spriteBatch.Draw(filledPixel, rect, Color.White);
+        }
+
         public static void DrawLine(this SpriteBatch spriteBatch, Point start, Point end, Color color)
         {
             //  Calculate the angle of the line
@@ -52,7 +62,7 @@ namespace ProjectDelta.Helpers
                              origin: Vector2.Zero,
                              scale: new Vector2(distance, 1.0f),
                              effects: SpriteEffects.None,
-                             layerDepth: 0.0f);
+                             layerDepth: 1f);
         }
     }
 

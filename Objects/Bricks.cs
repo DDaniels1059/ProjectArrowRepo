@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ProjectDelta
+namespace ProjectDelta.Objects
 {
     public class Bricks : GameObject
     {

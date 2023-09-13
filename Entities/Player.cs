@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
 using Microsoft.Xna.Framework;
 using ProjectDelta.Helpers;
+using ProjectDelta.Objects;
 
 namespace ProjectDelta
 {
@@ -19,6 +20,7 @@ namespace ProjectDelta
         private int speed = 150;
         private float depth;
         private bool isMoving = false;
+        private bool hasCollided = false;
 
 
         private SpriteAnimation[] animations = new SpriteAnimation[4];
@@ -40,6 +42,7 @@ namespace ProjectDelta
         public void Update(GameTime gameTime, float deltaTime, InputHelper inputHelper)
         {   
             isMoving = false;
+            hasCollided = false;
             lastPosition = position;
 
             if (inputHelper.IsKeyDown(Keys.D))
@@ -90,11 +93,11 @@ namespace ProjectDelta
             else
                 anim.setFrame(1);
 
+
             //Offset Collider So It Is Where I Want At The Feet
             collider = new Rectangle((int)position.X + 4, (int)position.Y + 10, 8, 8);
             origin = new Vector2(position.X + (GameData.TileSize / 2), position.Y + (GameData.TileSize - 2));
             depth = Helper.GetDepth(origin);
-
 
             //Crude Check To Look For Collisions
             for (int i = 0; i < GameData.gameObjects.Count; i++)
@@ -103,12 +106,17 @@ namespace ProjectDelta
                 if (collider.Intersects(gameObject.collider))
                 {
                     position = lastPosition;
+                    anim.Position = new Vector2(position.X, position.Y);
+                    collider = new Rectangle((int)position.X + 4, (int)position.Y + 10, 8, 8);
+                    origin = new Vector2(position.X + (GameData.TileSize / 2), position.Y + (GameData.TileSize - 2));
+                    depth = Helper.GetDepth(origin);
                     break;
                 }
             }
+
+
         }
 
-        //This Gets Called In Game1 Draw
         public void Draw(SpriteBatch _spriteBatch)
         {      
             //Draw Player
@@ -117,9 +125,7 @@ namespace ProjectDelta
             //Draw Collider For Debug
             //_spriteBatch.Draw(GameData.TextureAtlas, collider, GameData.TextureMap["Debug"], Color.White, 0f, Vector2.Zero, SpriteEffects.None, 1f);
 
-            _spriteBatch.DrawHollowRect(collider, Color.Red);
-
-
+            _spriteBatch.DrawFilledRect(collider, Color.Red);
 
             //Draw Origin For Depth Sorting Debug
             _spriteBatch.Draw(GameData._pixel, origin, null, Color.Red, 0f, Vector2.Zero, 1f, SpriteEffects.None, 1f);

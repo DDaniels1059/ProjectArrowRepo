@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using ProjectDelta.Helpers;
+using ProjectDelta.Objects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,26 +21,21 @@ namespace ProjectDelta
         private SpriteBatch _spriteBatch;
         private Player _player;
         private Screen _screen;
+        private Basic2DCamera _camera;
+        private InputHelper inputHelper;
+
+        private List<Vector2[]> lines;
+
+        private Rectangle _npcRect;
+        private Button OptionsButton;
 
         private bool isFirstClick = true;
 
 
-        private List<Vector2[]> lines;
-
-        //  Just a rectangle to represent a flat surface, or floor in our world
-        private Rectangle _npcRect;
-        private Rectangle _buttonRect;
-        private Button OptionsButton;
-
-        //  A 1x1 pixel that will be used to draw the screen and player texture.
-        private Texture2D _view;
-        private float rotation = 0.001f;
-        private bool isTurned = false;
-        private float rotation1 = 0.001f;
-
-        // The camera
-        Basic2DCamera _camera;
-        InputHelper inputHelper;
+        Vector2 firstpoint;
+        Vector2 lastpoint;
+        Tower firsttower;
+        Tower lasttower;
 
         public Game1()
         {
@@ -58,38 +54,18 @@ namespace ProjectDelta
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             SpriteBatchExtensions.Initialize(GraphicsDevice);
-            lines = new List<Vector2[]>();
-
             GameData.LoadData(Content, GraphicsDevice);
+            inputHelper = new InputHelper();
+
+            lines = new List<Vector2[]>();
             _player = new Player();
             _player.LoadData();
-
-            //  Setting the player to a 32x32 sprite, but setting the position to be in the center of the screen rect
-            //  which is why width and height are halved and then 16 (half the player size) subtracted
-
             _npcRect = new Rectangle((_screen.VirtualWidth / 2), (_screen.VirtualHeight / 2), 16, 16);
 
 
             // Create camera
             _camera = new(_screen.VirtualWidth, _screen.VirtualHeight);
             _camera.Zoom *= new Vector2(1f);
-
-            // Create Input Helper
-            inputHelper = new InputHelper();
-
-            _buttonRect = new Rectangle(_screen.VirtualWidth - 24, 8, 16, 16);
-
-
-            // LoadContent or When The Line Needs to be made
-            //Vector2 startPoint = new Vector2(100, 100); // Replace with your desired coordinates
-            //Vector2 endPoint = new Vector2(300, 200);   // Replace with your desired coordinates
-            //int numberOfSegments = 100; // Adjust as needed
-            //float sagAmount = 10f; // Adjust this value to control the sag
-            //CalculateSaggingLine(startPoint, endPoint, numberOfSegments, sagAmount);
-
-            CreateLine(new Vector2(100, 100), new Vector2(300, 100));
-            CreateLine(new Vector2(300, 100), new Vector2(600, 100));
-            CreateLine(new Vector2(100, 300), new Vector2(200, 300));
 
             OptionsButton = new Button();
             OptionsButton.CreateButton(GameData.TextureMap["Wrench"], GameData.TextureMap["Wrench"], false);
@@ -107,6 +83,32 @@ namespace ProjectDelta
                 float deltatime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
 
+                // Possible Start To Method To Create Power Lines
+                if (inputHelper.IsKeyPress(Keys.Z))
+                {
+                    if (isFirstClick)
+                    {
+                        firstpoint = new Vector2(inputHelper.WorldMousePosition.X, inputHelper.WorldMousePosition.Y);
+                        firsttower = new Tower(inputHelper);
+                        GameData.gameObjects.Add(firsttower);
+                        isFirstClick = false;
+                    }
+                    else
+                    {
+                        lastpoint = new Vector2(inputHelper.WorldMousePosition.X, inputHelper.WorldMousePosition.Y);
+                        lasttower = new Tower(inputHelper);
+                        GameData.gameObjects.Add(lasttower);
+
+                        // Create the power line and associate it with the towers.
+                        PowerLine powerLine = new PowerLine(firsttower, lasttower);
+                        GameData.powerLines.Add(powerLine);
+                        powerLine.CreateLine();
+                        isFirstClick = true;
+                    }
+                }
+
+                //CreateLine(firsttower.linePosition, lasttower.linePosition);
+
                 #region Testing
 
 
@@ -122,104 +124,54 @@ namespace ProjectDelta
                     }
                     else
                     {
-                        _screen.SetWindowed();
+                        _screen.SetWindowed(1280, 720);
                     }
                 }
-                if (inputHelper.IsKeyPress(Keys.D2))
+
+                
+
+                //if (inputHelper.IsKeyDown(Keys.Right))
+                //    currtype = Itemtypes.gears;
+                //if (inputHelper.IsKeyDown(Keys.Left))
+                //    currtype = Itemtypes.bricks;
+
+
+                //if (inputHelper.IsKeyPress(Keys.Z))
+                //{
+                //    GameObject newObject = new GameObject();
+
+                //    switch (currtype)
+                //    {
+                //        case Itemtypes.gears:
+                //            {
+                //                newObject = new Tower(inputHelper);                                
+                //                break;
+                //            }
+                //        case Itemtypes.bricks:
+                //            {
+                //                newObject = new Bricks();
+                //                newObject.texture = GameData.TextureMap["Gear"];
+                //                break;
+                //            }
+                //    }
+                //    GameData.gameObjects.Add(newObject);
+                //}
+
+                // Testing
+                if (inputHelper.IsMouseButtonPress(MouseButtons.RightButton))
                 {
-                    _screen.SetWindowed();
-                }
-
-                ////Adjust View Padding
-                //if (inputHelper.IsKeyDown(Keys.Right) && (_screen.ViewWidth > _screen.VirtualWidth))
-                //    _screen.ViewPadding += 5;
-
-                //if (inputHelper.IsKeyDown(Keys.Left) && (_screen.ViewWidth < GraphicsDevice.PresentationParameters.BackBufferWidth))
-                //    _screen.ViewPadding -= 5;
-
-                //if (_buttonRect.Contains(VirtualMousePosition))
-                //{
-                //    if (rotation > .5)
-                //    {
-                //        isTurned = true;
-                //    }
-                //    else if (rotation <= -.5)
-                //    {
-                //        isTurned = false;
-                //    }
-
-                //    if (!isTurned)
-                //    {
-                //        rotation += 4f * deltatime;
-                //    }
-                //    else if (isTurned)
-                //    {
-                //        rotation -= 4f * deltatime;
-                //    }
-
-                //    if (inputHelper.IsMouseButtonPress(MouseButtons.RightButton))
-                //    {
-                //        _camera.Zoom /= new Vector2(2f);
-                //    }
-
-                //    if (inputHelper.IsMouseButtonPress(MouseButtons.LeftButton))
-                //    {
-                //        _camera.Zoom *= new Vector2(2f);
-                //    }
-                //}
-                //else
-                //{
-                //    rotation = 0;
-                //}
-                ////Adjust View Padding
-                if (inputHelper.IsKeyDown(Keys.Right))
-                    currtype = Itemtypes.gears;
-                if (inputHelper.IsKeyDown(Keys.Left))
-                    currtype = Itemtypes.bricks;
-
-                //if (inputHelper.IsMouseButtonPress(MouseButtons.LeftButton))
-                //{
-                //    if (isFirstClick)
-                //    {
-                //        firstpoint = new Vector2(WorldMousePosition.X, WorldMousePosition.Y);
-                //        isFirstClick = false;
-                //    }
-                //    else
-                //    {
-                //        lastpoint = new Vector2(WorldMousePosition.X, WorldMousePosition.Y);
-                //        CreateLine(firstpoint, lastpoint);
-                //        isFirstClick = true;
-                //    }
-                //}
-
-
-                if (inputHelper.IsMouseButtonPress(MouseButtons.LeftButton) && !_buttonRect.Contains(inputHelper.VirtualMousePosition))
-                {
-                    GameObject newObject = new GameObject();
-
-                    switch (currtype)
+                    // Check if there's at least one power line.
+                    if (GameData.powerLines.Count > 0)
                     {
-                        case Itemtypes.gears:
-                            {
-                                newObject = new Tower(inputHelper);                                
-                                break;
-                            }
-                        case Itemtypes.bricks:
-                            {
-                                newObject = new Bricks();
-                                newObject.texture = GameData.TextureMap["Gear"];
-                                break;
-                            }
-                    }
+                        // Get the first power line.
+                        PowerLine firstPowerLine = GameData.powerLines[0];
 
-                    //newObject.position = new Vector2(inputHelper.WorldMousePosition.X - (newObject.texture.Width / 2), inputHelper.WorldMousePosition.Y - (newObject.texture.Height / 2));
-                    //Vector2 origin = new Vector2(newObject.position.X + (GameData.TileSize / 2), newObject.position.Y + (GameData.TileSize - 2));
-                    //newObject.depth = Helper.GetDepth(origin);
-                    GameData.gameObjects.Add(newObject);
-                }
-                if (inputHelper.IsMouseButtonPress(MouseButtons.RightButton) && !_buttonRect.Contains(inputHelper.VirtualMousePosition))
-                {
-                    GameData.gameObjects.Clear();
+                        // Remove the associated towers.
+                        firstPowerLine.RemoveTower(firsttower);
+
+                        // Remove the power line itself.
+                        GameData.powerLines.Remove(firstPowerLine);
+                    }
                 }
                 #endregion
 
@@ -234,7 +186,6 @@ namespace ProjectDelta
                     button.Update(inputHelper.VirtualMousePosition, inputHelper, deltatime, button.location);
                 }
 
-                rotation1 += 0.05f;
                 base.Update(gameTime);
             }
             else
@@ -266,23 +217,48 @@ namespace ProjectDelta
 
 
                 // Check if the GameObject is of type Tower
-                if (gameObject is Tower)
+                if (gameObject is Tower tower)
                 {
-                    Tower tower = (Tower)gameObject;
                     _spriteBatch.DrawHollowRect(tower.collider, Color.Red);
                 }
             }
 
-            //Power Lines
-            for (int i = 0; i < lines.Count; i++)
-            {
-                Vector2[] line = lines[i];
 
-                for (int j = 0; j < line.Length - 1; j++)
+            //foreach (var powerLine in GameData.powerLines)
+            //{
+            //    // Check if the power line has vertices and draw it
+            //    if (powerLine.LineVertices.Count > 0)
+            //    {
+            //        for (int j = 0; j < powerLine.LineVertices.Count - 1; j++)
+            //        {
+            //            _spriteBatch.Draw(GameData._pixel, powerLine.LineVertices[j], null, Color.Black, 0f, Vector2.Zero, 2.5f, SpriteEffects.None, 1f);
+            //        }
+            //    }
+            //}
+
+
+            for (int i = 0; i < GameData.powerLines.Count; i++)
+            {
+                PowerLine PowerLine = GameData.powerLines[i];
+                Vector2[] LineVerts = PowerLine.LineVertices;
+
+                for (int j = 0; j < LineVerts.Length - 1; j++)
                 {
-                    _spriteBatch.Draw(GameData._pixel, line[j], null, Color.Black, 0f, Vector2.Zero, 2.5f, SpriteEffects.None, 1f);
+                    _spriteBatch.Draw(GameData._pixel, LineVerts[j], null, Color.Black, 0f, Vector2.Zero, 2.5f, SpriteEffects.None, 1f);
                 }
             }
+
+
+            ////Power Lines
+            //for (int i = 0; i < lines.Count; i++)
+            //{
+            //    Vector2[] line = lines[i];
+
+            //    for (int j = 0; j < line.Length - 1; j++)
+            //    {
+            //        _spriteBatch.Draw(GameData._pixel, line[j], null, Color.Black, 0f, Vector2.Zero, 2.5f, SpriteEffects.None, 1f);
+            //    }
+            //}
 
             //Player
             _player.Draw(_spriteBatch);
@@ -330,36 +306,7 @@ namespace ProjectDelta
 
             base.Draw(gameTime);
         }
-        private void CalculateSaggingLine(Vector2 startPoint, Vector2 endPoint, Vector2[] newlineVertices, int numberOfSegments, float sagAmount)
-        {
-            for (int i = 0; i <= numberOfSegments; i++)
-            {
-                float t = (float)i / numberOfSegments;
-                float y = MathHelper.Lerp(startPoint.Y, endPoint.Y, t);
-                float x = MathHelper.Lerp(startPoint.X, endPoint.X, t);
 
-                // Add a slight sine wave effect to create the sag in the middle
-                if (i > 0 && i < numberOfSegments)
-                {
-                    float sagOffset = sagAmount * (float)Math.Sin(t * MathHelper.Pi);
-                    y += sagOffset;
-                }
-
-                newlineVertices[i] = new Vector2(x, y);
-            }
-            lines.Add(newlineVertices);
-        }
-        private void CreateLine(Vector2 StartPoint, Vector2 EndPoint)
-        {
-
-            if(EndPoint.X < (StartPoint.X * 2) && EndPoint.Y < (StartPoint.Y * 2))
-            {
-                int numberOfSegments = 150; // Adjust as needed
-                float sagAmount = 15f; // Adjust this value to control the sag
-                Vector2[] newlineVertices = new Vector2[numberOfSegments + 1];
-                CalculateSaggingLine(StartPoint, EndPoint, newlineVertices, numberOfSegments, sagAmount);
-            }
-        }   
         public void SettingsPress()
         {
             if (inputHelper.IsMouseButtonPress(MouseButtons.RightButton))
