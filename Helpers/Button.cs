@@ -144,6 +144,7 @@ namespace ProjectDelta
             }
 
             //Debug Texture
+            if(GameData.IsDebug)
             _spriteBatch.DrawHollowRect(bounds, Color.Red);
 
         }

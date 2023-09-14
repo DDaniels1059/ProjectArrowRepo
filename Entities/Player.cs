@@ -17,10 +17,9 @@ namespace ProjectDelta
         private Vector2 position;
         private Vector2 lastPosition;
         private Vector2 origin;
-        private int speed = 150;
+        private int speed = 100;
         private float depth;
         private bool isMoving = false;
-        private bool hasCollided = false;
 
 
         private SpriteAnimation[] animations = new SpriteAnimation[4];
@@ -29,10 +28,10 @@ namespace ProjectDelta
 
         public void LoadData()
         {
-            animations[0] = new SpriteAnimation(GameData.TextureAtlas, 4, 0, "Player_Up");
-            animations[1] = new SpriteAnimation(GameData.TextureAtlas, 4, 0, "Player_Down");
-            animations[2] = new SpriteAnimation(GameData.TextureAtlas, 4, 0, "Player_Left");
-            animations[3] = new SpriteAnimation(GameData.TextureAtlas, 4, 0, "Player_Right");
+            animations[0] = new SpriteAnimation(GameData.PlayerDown, 4, 6);
+            animations[1] = new SpriteAnimation(GameData.PlayerUp, 4, 6);
+            animations[2] = new SpriteAnimation(GameData.PlayerLeft, 4, 6);
+            animations[3] = new SpriteAnimation(GameData.PlayerRight, 4, 6);
             anim = animations[0];
 
             position = new Vector2(100, 100);
@@ -42,7 +41,6 @@ namespace ProjectDelta
         public void Update(GameTime gameTime, float deltaTime, InputHelper inputHelper)
         {   
             isMoving = false;
-            hasCollided = false;
             lastPosition = position;
 
             if (inputHelper.IsKeyDown(Keys.D))
@@ -91,44 +89,42 @@ namespace ProjectDelta
             if (isMoving)
                 anim.Update(gameTime);
             else
-                anim.setFrame(1);
+                anim.setFrame(0);
 
 
             //Offset Collider So It Is Where I Want At The Feet
-            collider = new Rectangle((int)position.X + 4, (int)position.Y + 10, 8, 8);
+            collider = new Rectangle((int)position.X + 4, (int)position.Y + 8, 8, 4);
             origin = new Vector2(position.X + (GameData.TileSize / 2), position.Y + (GameData.TileSize - 2));
             depth = Helper.GetDepth(origin);
 
             //Crude Check To Look For Collisions
-            for (int i = 0; i < GameData.gameObjects.Count; i++)
+            for (int i = 0; i < GameData.GameObjects.Count; i++)
             {
-                GameObject gameObject = GameData.gameObjects[i];
+                GameObject gameObject = GameData.GameObjects[i];
                 if (collider.Intersects(gameObject.collider))
                 {
                     position = lastPosition;
-                    anim.Position = new Vector2(position.X, position.Y);
-                    collider = new Rectangle((int)position.X + 4, (int)position.Y + 10, 8, 8);
+                    anim.Position = new Vector2((int)position.X, (int)position.Y);
+                    collider = new Rectangle((int)position.X + 4, (int)position.Y + 8, 8, 4);
                     origin = new Vector2(position.X + (GameData.TileSize / 2), position.Y + (GameData.TileSize - 2));
                     depth = Helper.GetDepth(origin);
                     break;
                 }
             }
-
-
         }
 
         public void Draw(SpriteBatch _spriteBatch)
         {      
             //Draw Player
-            anim.DrawFromAtlas(_spriteBatch, depth);
+            anim.Draw(_spriteBatch, depth);
 
-            //Draw Collider For Debug
-            //_spriteBatch.Draw(GameData.TextureAtlas, collider, GameData.TextureMap["Debug"], Color.White, 0f, Vector2.Zero, SpriteEffects.None, 1f);
-
-            _spriteBatch.DrawFilledRect(collider, Color.Red);
-
-            //Draw Origin For Depth Sorting Debug
-            _spriteBatch.Draw(GameData._pixel, origin, null, Color.Red, 0f, Vector2.Zero, 1f, SpriteEffects.None, 1f);
+            if(GameData.IsDebug)
+            {
+                //Collider Debug
+                _spriteBatch.DrawHollowRect(collider, Color.Red);
+                //Origin / Depth Sorting Debug
+                _spriteBatch.Draw(GameData.Pixel, origin, null, Color.Red, 0f, Vector2.Zero, 1f, SpriteEffects.None, 1f);
+            }
         }
     }
 }

@@ -13,8 +13,8 @@ namespace ProjectDelta
 {
     public class Game1 : Game
     {
-        enum Itemtypes { gears, bricks };
-        Itemtypes currtype = Itemtypes.gears;
+        enum Itemtypes { Battery, Tower };
+        Itemtypes currtype = Itemtypes.Battery;
 
         private bool Active = true;
         private GraphicsDeviceManager _graphics;
@@ -24,9 +24,6 @@ namespace ProjectDelta
         private Basic2DCamera _camera;
         private InputHelper inputHelper;
 
-        private List<Vector2[]> lines;
-
-        private Rectangle _npcRect;
         private Button OptionsButton;
 
         private bool isFirstClick = true;
@@ -57,10 +54,8 @@ namespace ProjectDelta
             GameData.LoadData(Content, GraphicsDevice);
             inputHelper = new InputHelper();
 
-            lines = new List<Vector2[]>();
             _player = new Player();
             _player.LoadData();
-            _npcRect = new Rectangle((_screen.VirtualWidth / 2), (_screen.VirtualHeight / 2), 16, 16);
 
 
             // Create camera
@@ -82,8 +77,8 @@ namespace ProjectDelta
                 inputHelper.Update(_screen, _camera);
                 float deltatime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-                //CreateLine(firsttower.linePosition, lasttower.linePosition);
 
+                #region Main Input
                 if (inputHelper.IsKeyDown(Keys.Escape))
                 {
                     Exit();
@@ -99,35 +94,44 @@ namespace ProjectDelta
                         _screen.SetWindowed(1280, 720);
                     }
                 }
+                if (inputHelper.IsKeyPress(Keys.D2))
+                {
+                    if (!GameData.IsDebug)
+                    {
+                        GameData.IsDebug = true;
+                    }
+                    else
+                    {
+                        GameData.IsDebug = false;
+                    }
+                }
+                #endregion
+
+                if (inputHelper.IsKeyDown(Keys.Right))
+                    currtype = Itemtypes.Battery;
+                if (inputHelper.IsKeyDown(Keys.Left))
+                    currtype = Itemtypes.Tower;
 
 
+                if (inputHelper.IsKeyPress(Keys.X))
+                {
+                    GameObject newObject = new GameObject();
 
-                //if (inputHelper.IsKeyDown(Keys.Right))
-                //    currtype = Itemtypes.gears;
-                //if (inputHelper.IsKeyDown(Keys.Left))
-                //    currtype = Itemtypes.bricks;
-
-
-                //if (inputHelper.IsKeyPress(Keys.Z))
-                //{
-                //    GameObject newObject = new GameObject();
-
-                //    switch (currtype)
-                //    {
-                //        case Itemtypes.gears:
-                //            {
-                //                newObject = new Tower(inputHelper);                                
-                //                break;
-                //            }
-                //        case Itemtypes.bricks:
-                //            {
-                //                newObject = new Bricks();
-                //                newObject.texture = GameData.TextureMap["Gear"];
-                //                break;
-                //            }
-                //    }
-                //    GameData.gameObjects.Add(newObject);
-                //}
+                    switch (currtype)
+                    {
+                        case Itemtypes.Tower:
+                            {
+                                newObject = new Tower(inputHelper);
+                                break;
+                            }
+                        case Itemtypes.Battery:
+                            {
+                                newObject = new Battery(inputHelper);
+                                break;
+                            }
+                    }
+                    GameData.GameObjects.Add(newObject);
+                }
 
                 #region PowerLines
 
@@ -139,7 +143,7 @@ namespace ProjectDelta
                         //Create First Tower
                         firstpoint = new Vector2(inputHelper.WorldMousePosition.X, inputHelper.WorldMousePosition.Y);
                         firsttower = new Tower(inputHelper);
-                        GameData.gameObjects.Add(firsttower);
+                        GameData.GameObjects.Add(firsttower);
                         isFirstClick = false;
                     }
                     else
@@ -147,11 +151,11 @@ namespace ProjectDelta
                         //Create Last Tower
                         lastpoint = new Vector2(inputHelper.WorldMousePosition.X, inputHelper.WorldMousePosition.Y);
                         lasttower = new Tower(inputHelper);
-                        GameData.gameObjects.Add(lasttower);
+                        GameData.GameObjects.Add(lasttower);
 
                         // Create the power line and associate it with the towers.
                         PowerLine powerLine = new PowerLine(firsttower, lasttower);
-                        GameData.powerLines.Add(powerLine);
+                        GameData.PowerLines.Add(powerLine);
                         powerLine.CreateLine();
                         isFirstClick = true;
                     }
@@ -160,11 +164,11 @@ namespace ProjectDelta
                 // Remove Power Line Pair
                 if (inputHelper.IsMouseButtonPress(MouseButtons.RightButton))
                 {
-                    if (GameData.powerLines.Count > 0)
+                    if (GameData.PowerLines.Count > 0)
                     {
                         // Get the first power line. (TEMP)
                         // We Remove Both Towers ATM.
-                        PowerLine firstPowerLine = GameData.powerLines[0];
+                        PowerLine firstPowerLine = GameData.PowerLines[0];
                         firstPowerLine.RemoveTower(firsttower);
                         firstPowerLine.RemoveTower(lasttower);
                     }
@@ -202,68 +206,36 @@ namespace ProjectDelta
             _spriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.AlphaBlend, SamplerState.PointClamp, null, null, null, transformMatrix: _camera.TransformationMatrix * _screen.ScreenScaleMatrix);      
 
             //Background
-            _spriteBatch.Draw(GameData._pixel, new Rectangle(0, 0, 800, 800), null, Color.Orange, 0f, Vector2.Zero, SpriteEffects.None, 0f);
+            _spriteBatch.Draw(GameData.Pixel, new Rectangle(0, 0, 800, 800), null, Color.SlateGray, 0f, Vector2.Zero, SpriteEffects.None, 0f);
 
             //GameObjects
-            for (int i = 0; i < GameData.gameObjects.Count; i++)
+            for (int i = 0; i < GameData.GameObjects.Count; i++)
             {
-                GameObject gameObject = GameData.gameObjects[i];
+                GameObject gameObject = GameData.GameObjects[i];
                 _spriteBatch.Draw(GameData.TextureAtlas, new Vector2((int)gameObject.position.X, (int)gameObject.position.Y), gameObject.texture, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, gameObject.depth);
-                //Draw Origin
-                _spriteBatch.Draw(GameData._pixel, gameObject.origin, null, Color.Red,0f, Vector2.Zero, 1f, SpriteEffects.None, 1f);
 
 
-                // Check if the GameObject is of type Tower
-                if (gameObject is Tower tower)
+                if (GameData.IsDebug)
                 {
-                    _spriteBatch.DrawHollowRect(tower.collider, Color.Red);
+                    _spriteBatch.Draw(GameData.Pixel, gameObject.origin, null, Color.Red, 0f, Vector2.Zero, 1f, SpriteEffects.None, 1f);
+                    _spriteBatch.DrawHollowRect(gameObject.collider, Color.Red);
                 }
             }
 
-
-            //foreach (var powerLine in GameData.powerLines)
-            //{
-            //    // Check if the power line has vertices and draw it
-            //    if (powerLine.LineVertices.Count > 0)
-            //    {
-            //        for (int j = 0; j < powerLine.LineVertices.Count - 1; j++)
-            //        {
-            //            _spriteBatch.Draw(GameData._pixel, powerLine.LineVertices[j], null, Color.Black, 0f, Vector2.Zero, 2.5f, SpriteEffects.None, 1f);
-            //        }
-            //    }
-            //}
-
-
-            for (int i = 0; i < GameData.powerLines.Count; i++)
+            //Power Lines
+            for (int i = 0; i < GameData.PowerLines.Count; i++)
             {
-                PowerLine PowerLine = GameData.powerLines[i];
+                PowerLine PowerLine = GameData.PowerLines[i];
                 Vector2[] LineVerts = PowerLine.LineVertices;
 
                 for (int j = 0; j < LineVerts.Length - 1; j++)
                 {
-                    _spriteBatch.Draw(GameData._pixel, LineVerts[j], null, Color.Black, 0f, Vector2.Zero, 2.5f, SpriteEffects.None, 1f);
+                    _spriteBatch.Draw(GameData.Pixel, LineVerts[j], null, Color.Black, 0f, Vector2.Zero, 2.5f, SpriteEffects.None, 1f);
                 }
             }
 
-
-            ////Power Lines
-            //for (int i = 0; i < lines.Count; i++)
-            //{
-            //    Vector2[] line = lines[i];
-
-            //    for (int j = 0; j < line.Length - 1; j++)
-            //    {
-            //        _spriteBatch.Draw(GameData._pixel, line[j], null, Color.Black, 0f, Vector2.Zero, 2.5f, SpriteEffects.None, 1f);
-            //    }
-            //}
-
             //Player
             _player.Draw(_spriteBatch);
-
-
-            //NPC
-            _spriteBatch.Draw(GameData.TextureAtlas, _npcRect, GameData.TextureMap["Gear"], Color.Green, 0f, Vector2.Zero, SpriteEffects.None, Helper.GetDepth(new Vector2(_npcRect.X + 8, _npcRect.Y + 14)));
-
 
             _spriteBatch.End();
 
@@ -273,18 +245,15 @@ namespace ProjectDelta
             // Draw UI elements (buttons and text)
             _spriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.AlphaBlend, SamplerState.PointClamp, null, null, null, transformMatrix: _screen.ScreenScaleMatrix);
 
-            //_spriteBatch.Draw(GameData.TextureAtlas, new Rectangle(_buttonRect.X + 8, _buttonRect.Y + 8, GameData.TileSize, GameData.TileSize), GameData.TextureMap["Wrench"], Color.White, rotation, _buttonRect.Size.ToVector2() / 2f, SpriteEffects.None, 1f);
-            //_spriteBatch.Draw(_pixel, _buttonRect, null, Color.Red, 0f, Vector2.Zero, SpriteEffects.None, .9f);
-            //This allows us to see the padding view change, much easier...
-            //Show this only when the user wants to change padding?
-            //_spriteBatch.Draw(_view, Vector2.Zero, null, Color.White);
-
-            _spriteBatch.DrawString(GameData.GameFont, "WorldMousePos: " + ((int)inputHelper.WorldMousePosition.X).ToString() + " " + ((int)inputHelper.WorldMousePosition.Y).ToString(), new Vector2((int)5, (int)5), Color.White, 0f, Vector2.Zero, .35f, SpriteEffects.None, 1f);
-            _spriteBatch.DrawString(GameData.GameFont, "VirtualMousePos: " + ((int)inputHelper.VirtualMousePosition.X).ToString() + " " + ((int)inputHelper.VirtualMousePosition.Y).ToString(), new Vector2((int)5, (int)15), Color.White, 0f, Vector2.Zero, .35f, SpriteEffects.None, 1f);
-            //_spriteBatch.DrawString(GameData.GameFont, "LEFT And RIGHT Arrows To Change View Padding", new Vector2((int)5, (int)15), Color.White, 0f, Vector2.Zero, .25f, SpriteEffects.None, 1f);
+            if (GameData.IsDebug)
+            {
+                _spriteBatch.DrawString(GameData.GameFont, "WorldMousePos: " + ((int)inputHelper.WorldMousePosition.X).ToString() + " " + ((int)inputHelper.WorldMousePosition.Y).ToString(), new Vector2((int)5, (int)5), Color.White, 0f, Vector2.Zero, .35f, SpriteEffects.None, 1f);
+                _spriteBatch.DrawString(GameData.GameFont, "VirtualMousePos: " + ((int)inputHelper.VirtualMousePosition.X).ToString() + " " + ((int)inputHelper.VirtualMousePosition.Y).ToString(), new Vector2((int)5, (int)15), Color.White, 0f, Vector2.Zero, .35f, SpriteEffects.None, 1f);
+            }
+            
 
             string textToCenter = "Paused";
-            float textSize = GameData.GameFont.MeasureString(textToCenter).X * 1f;
+            float textSize = (int)GameData.GameFont.MeasureString(textToCenter).X;
 
             for (int i = 0; i < GameData.ButtonList.Count; i++)
             {
@@ -294,8 +263,7 @@ namespace ProjectDelta
 
             // Pause Text
             if (!Active)
-                _spriteBatch.DrawString(GameData.GameFont, textToCenter, new Vector2((int)(324 - textSize) / 2, (int)(180 / 3)), Color.Black, 0f, Vector2.Zero, 1f, SpriteEffects.None, 1f);
-
+                _spriteBatch.DrawString(GameData.GameFont, textToCenter, new Vector2((int)(_screen.VirtualWidth / 2) - (textSize / 2) + 1, (int)_screen.VirtualHeight - 30), Color.Black, 0f, Vector2.Zero, 1f, SpriteEffects.None, 1f);
 
             _spriteBatch.End();
 

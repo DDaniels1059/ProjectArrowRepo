@@ -59,11 +59,10 @@ namespace ProjectDelta.Helpers
         private float timeToUpdate;
         public int FramesPerSecond { set { timeToUpdate = 1f / value; } }
 
-        public SpriteAnimation(Texture2D Texture, int frames, int fps, string spriteName) : base(Texture, frames)
+        public SpriteAnimation(Texture2D Texture, int frames, int fps, string spriteName = null) : base(Texture, frames)
         {
             FramesPerSecond = fps;
-            SpriteName = spriteName; // Store the sprite's name
-
+            SpriteName = spriteName; // Store the sprite's name or leave it as null if not provided
         }
 
         public void Update(GameTime gameTime)

@@ -26,9 +26,9 @@ namespace ProjectDelta.Objects
             if (StartTower == tower || EndTower == tower)
             {
                 //GameData.powerLines.Remove(this);
-                GameData.gameObjects.Remove(tower);
+                GameData.GameObjects.Remove(tower);
 
-                GameData.powerLines.RemoveAll(line => line.StartTower == tower || line.EndTower == tower);
+                GameData.PowerLines.RemoveAll(line => line.StartTower == tower || line.EndTower == tower);
                 //GameData.gameObjects.Remove(tower);
             }
 
