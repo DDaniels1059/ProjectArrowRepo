@@ -24,6 +24,7 @@ namespace ProjectDelta.Helpers
         public static int TileSize = 16;
         public static float UIScale = 1f;
         public static bool IsDebug = false;
+        public static bool IsPaused = false;
 
         public static List<Button> ButtonList;
         public static List<GameObject> GameObjects;
@@ -35,16 +36,12 @@ namespace ProjectDelta.Helpers
             TextureAtlas = content.Load<Texture2D>("Misc/TextureAtlas");
             TextureMap = new Dictionary<string, Rectangle>
             {                               //X  Y  Width     Height
-                ["Player_Up"] = new Rectangle(0, 0, TileSize, TileSize),
-                ["Player_Down"] = new Rectangle(16, 0, TileSize, TileSize),
-                ["Player_Right"] = new Rectangle(32, 0, TileSize, TileSize),
-                ["Player_Left"] = new Rectangle(48, 0, TileSize, TileSize),
-
-                ["Wrench"] = new Rectangle(0, 16, TileSize, TileSize),
-                ["Gear"] = new Rectangle(16, 16, TileSize, TileSize),
-                ["Debug"] = new Rectangle(32, 16, TileSize, TileSize),
+                ["Wrench"] = new Rectangle(0, 0, TileSize, TileSize),
+                ["Wheel"] = new Rectangle(16, 0, TileSize, TileSize),
+                ["LeftArrow"] = new Rectangle(32, 0, TileSize, TileSize),
+                ["LeftArrowPressed"] = new Rectangle(48, 0, TileSize, TileSize),
                 ["Tower"] = new Rectangle(64, 0, TileSize, TileSize * 3),
-                ["Battery"] = new Rectangle(80, 16, TileSize, TileSize * 2)
+                ["Battery"] = new Rectangle(80, 0, TileSize, TileSize)
             };
 
             Pixel = new Texture2D(graphicsDevice, 1, 1);

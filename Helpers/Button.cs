@@ -5,6 +5,7 @@ using ProjectDelta.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using static ProjectDelta.Helpers.InputHelper;
 
 namespace ProjectDelta
@@ -14,29 +15,36 @@ namespace ProjectDelta
         private Rectangle defaultSprite;
         private Rectangle pressedSprite;
         public Rectangle bounds;
+        public bool canDraw = false;
         private bool isPressed = false;
         private bool isToggle = false;
+        private bool isAnchoredRight = false;
+        private bool isAnchoredBottom = false;
         private bool toggled = false;
         private float timer = 100;
 
         public delegate void onPress();
         public onPress buttonPress;
-        public Vector2 location;
         private Color debugColor = Color.Red;
 
-        int scaledWidth;
-        int scaledHeight;
-        Vector2 offset;
+        private int scaledWidth;
+        private int scaledHeight;
+        private int SideAnchorOffset;
+        private int VerticalAnchorOffset;
+        private int buttonSetCount; 
 
+        public Vector2 location;
+        private Vector2 offset;
+        private SpriteEffects Flip = SpriteEffects.None;
 
         //Default Press Action
         private void DefaultPress()
         {
             Debug.WriteLine("Button Pressed: ADD New Function");
 
-            if(isToggle)
+            if (isToggle)
             {
-                if(toggled == true)
+                if (toggled == true)
                 {
                     toggled = false;
                 }
@@ -47,18 +55,22 @@ namespace ProjectDelta
             }
         }
 
-
-        //Creates Button, Adds to List, Sets Default Button Press
-        //No Manual Width Or Height, Redundant since I want Textures To be a set size
-        //I Can Just Scale Them Up From That Size If Needed
-        public void CreateButton(Rectangle defaultSprite, Rectangle pressedSprite, bool isToggle)
+        public Button(Rectangle defaultSprite, Rectangle pressedSprite, bool isToggle, bool isFlippedHorizontal, bool isAnchoredRight, bool isAnchoredBottom, int buttonSetCount = 1)
         {
             this.isToggle = isToggle;
             this.defaultSprite = defaultSprite;
             this.pressedSprite = pressedSprite;
-            //this.UIScale = scale;
+            this.isAnchoredRight = isAnchoredRight;
+            this.isAnchoredBottom = isAnchoredBottom;
+            this.buttonSetCount = buttonSetCount; 
+
             buttonPress = DefaultPress;
             GameData.ButtonList.Add(this);
+
+            if (isFlippedHorizontal)
+            {
+                Flip = SpriteEffects.FlipHorizontally;
+            }
         }
 
         public bool GetToggleState()
@@ -69,33 +81,61 @@ namespace ProjectDelta
         //Update Each Button In Main Call By Using For Loop
         public void Update(Vector2 VirtualMousePositon, InputHelper InputHelper, float DeltaTime, Vector2 location)
         {
-            this.location = location;
-
-            scaledWidth = (int)(defaultSprite.Width * GameData.UIScale);
-            scaledHeight = (int)(defaultSprite.Height * GameData.UIScale);
-            offset = new Vector2((defaultSprite.Width - scaledWidth), (int)location.Y);
-            bounds = new Rectangle((int)location.X + (int)offset.X, (int)offset.Y, scaledWidth, scaledHeight);
-
-            if (bounds.Contains(VirtualMousePositon) && InputHelper.IsMouseButtonPress(MouseButtons.LeftButton))
+            if (canDraw)
             {
-                isPressed = true;
+                this.location = location;
+                scaledWidth = (int)(defaultSprite.Width * GameData.UIScale);
+                scaledHeight = (int)(defaultSprite.Height * GameData.UIScale);
+                offset = new Vector2((defaultSprite.Width - scaledWidth), (defaultSprite.Width - scaledWidth) / 2);
 
-                //If Button press != Null //buttonPress?.Invoke();
-                if (buttonPress != null)
+                
+
+                if (GameData.UIScale > 1)
                 {
-                    buttonPress.Invoke();
+                    if (!isAnchoredRight)
+                    {
+                        SideAnchorOffset = (int)(-5 * GameData.UIScale) * (int)(GameData.UIScale);
+                    }
+                    else
+                    {
+                        SideAnchorOffset = (int)(5 * GameData.UIScale) * (int)(GameData.UIScale);
+                    }
+
+                    if (!isAnchoredBottom)
+                    {
+                        VerticalAnchorOffset = 10;
+                    }
+                    else
+                    {
+                        VerticalAnchorOffset = (int)((1 * buttonSetCount)) * (int)(10 * GameData.UIScale);
+                    }
+
+                    offset = new Vector2(((defaultSprite.Width - scaledWidth) / 2) + SideAnchorOffset, ((defaultSprite.Width - scaledWidth) / 2) + VerticalAnchorOffset);
                 }
-            }
 
-            if (isPressed)
-            {
-                timer -= 400 * DeltaTime;
+                bounds = new Rectangle((int)location.X + (int)offset.X, (int)location.Y + (int)offset.Y, scaledWidth, scaledHeight);
 
-                if (timer <= 0)
+                if (bounds.Contains(VirtualMousePositon) && InputHelper.IsMouseButtonPress(MouseButtons.LeftButton))
                 {
-                    isPressed = false;
-                    timer = 100;
-                    Debug.WriteLine("Button Released");
+                    isPressed = true;
+
+                    //If Button press != Null //buttonPress?.Invoke();
+                    if (buttonPress != null)
+                    {
+                        buttonPress.Invoke();
+                    }
+                }
+
+                if (isPressed)
+                {
+                    timer -= 400 * DeltaTime;
+
+                    if (timer <= 0)
+                    {
+                        isPressed = false;
+                        timer = 100;
+                        Debug.WriteLine("Button Released");
+                    }
                 }
             }
         }
@@ -106,47 +146,31 @@ namespace ProjectDelta
         //Draw Each Button In Main Call By Using For Loop
         public void Draw(SpriteBatch _spriteBatch)
         {
-            if (!isToggle)
+            if (!isToggle && canDraw)
             {
                 if (isPressed)
                 {
-                    //_spriteBatch.Draw(GameData.TextureAtlas, new Vector2((int)location.X, (int)location.Y) + offset, new Rectangle(pressedSprite.X, pressedSprite.Y, scaledWidth, scaledHeight), Color.White, 0f, Vector2.Zero, scale, SpriteEffects.None, 1f);
-                    _spriteBatch.Draw(GameData.TextureAtlas, new Rectangle((int)location.X + (int)offset.X, (int)offset.Y, scaledWidth, scaledHeight), new Rectangle(pressedSprite.X, pressedSprite.Y, GameData.TileSize, GameData.TileSize), Color.White, 0f, Vector2.Zero, SpriteEffects.None, 1f);
+                    _spriteBatch.Draw(GameData.TextureAtlas, new Rectangle((int)location.X + (int)offset.X, (int)location.Y + (int)offset.Y, scaledWidth, scaledHeight), new Rectangle(pressedSprite.X, pressedSprite.Y, GameData.TileSize, GameData.TileSize), Color.White, 0f, Vector2.Zero, Flip, 1f);
                 }
                 else
                 {
-                    //_spriteBatch.Draw(GameData.TextureAtlas, new Vector2((int)location.X, (int)location.Y) + offset, new Rectangle(defaultSprite.X, defaultSprite.Y, scaledWidth, scaledHeight), Color.White, 0f, Vector2.Zero, scale, SpriteEffects.None, 1f);
-                    _spriteBatch.Draw(GameData.TextureAtlas, new Rectangle((int)location.X + (int)offset.X, (int)offset.Y, scaledWidth, scaledHeight), new Rectangle(defaultSprite.X, defaultSprite.Y, GameData.TileSize, GameData.TileSize), Color.White, 0f, Vector2.Zero, SpriteEffects.None, 1f);
+                    _spriteBatch.Draw(GameData.TextureAtlas, new Rectangle((int)location.X + (int)offset.X, (int)location.Y + (int)offset.Y, scaledWidth, scaledHeight), new Rectangle(defaultSprite.X, defaultSprite.Y, GameData.TileSize, GameData.TileSize), Color.White, 0f, Vector2.Zero, Flip, 1f);
                 }
             }
-            else
+            else if (isToggle && canDraw)
             {
                 if (toggled)
                 {
-                    // Calculate the scaled dimensions
-                    int scaledWidth = (int)(pressedSprite.Width * GameData.UIScale);
-                    int scaledHeight = (int)(pressedSprite.Height * GameData.UIScale);
-
-                    // Calculate the offset to center the scaled rectangle
-                    Vector2 offset = new Vector2((pressedSprite.Width - scaledWidth) / 2, (pressedSprite.Height - scaledHeight) / 2);
-
-                    // Draw the scaled rectangle with the centering offset
-                    _spriteBatch.Draw(GameData.TextureAtlas, new Rectangle((int)location.X + (int)offset.X, (int)location.Y + (int)offset.Y, scaledWidth, scaledHeight), new Rectangle(pressedSprite.X, pressedSprite.Y, GameData.TileSize, GameData.TileSize), Color.White, 0f, Vector2.Zero, SpriteEffects.None, 1f);
-
+                    _spriteBatch.Draw(GameData.TextureAtlas, new Rectangle((int)location.X + (int)offset.X, (int)location.Y + (int)offset.Y, scaledWidth, scaledHeight), new Rectangle(pressedSprite.X, pressedSprite.Y, GameData.TileSize, GameData.TileSize), Color.White, 0f, Vector2.Zero, Flip, 1f);
                 }
                 else
                 {
-                    int scaledWidth = (int)(defaultSprite.Width * GameData.UIScale);
-                    int scaledHeight = (int)(defaultSprite.Height * GameData.UIScale);
-                    Vector2 offset = new Vector2((defaultSprite.Width - scaledWidth) / 2, (defaultSprite.Height - scaledHeight) / 2);
-                    _spriteBatch.Draw(GameData.TextureAtlas, new Rectangle((int)location.X + (int)offset.X, (int)location.Y + (int)offset.Y, scaledWidth, scaledHeight), new Rectangle(defaultSprite.X, defaultSprite.Y, GameData.TileSize, GameData.TileSize), Color.White, 0f, Vector2.Zero, SpriteEffects.None, 1f);
+                    _spriteBatch.Draw(GameData.TextureAtlas, new Rectangle((int)location.X + (int)offset.X, (int)location.Y + (int)offset.Y, scaledWidth, scaledHeight), new Rectangle(defaultSprite.X, defaultSprite.Y, GameData.TileSize, GameData.TileSize), Color.White, 0f, Vector2.Zero, Flip, 1f);
                 }
             }
 
-            //Debug Texture
-            if(GameData.IsDebug)
-            _spriteBatch.DrawHollowRect(bounds, Color.Red);
-
+            if (GameData.IsDebug && canDraw)
+                _spriteBatch.DrawHollowRect(bounds, Color.Red);
         }
-    }
+    }   
 }

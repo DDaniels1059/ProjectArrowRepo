@@ -33,8 +33,7 @@ namespace ProjectDelta
             animations[2] = new SpriteAnimation(GameData.PlayerLeft, 4, 6);
             animations[3] = new SpriteAnimation(GameData.PlayerRight, 4, 6);
             anim = animations[0];
-
-            position = new Vector2(100, 100);
+            position = new Vector2(300, 300);
         }
 
         //This Gets Called In Game1 Update

@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using ProjectDelta.Helpers;
 using ProjectDelta.Objects;
+using ProjectDelta.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,8 +24,7 @@ namespace ProjectDelta
         private Screen _screen;
         private Basic2DCamera _camera;
         private InputHelper inputHelper;
-
-        private Button OptionsButton;
+        private SettingsManager settingsManager;
 
         private bool isFirstClick = true;
 
@@ -49,10 +49,11 @@ namespace ProjectDelta
 
         protected override void LoadContent()
         {
-            _spriteBatch = new SpriteBatch(GraphicsDevice);
             SpriteBatchExtensions.Initialize(GraphicsDevice);
             GameData.LoadData(Content, GraphicsDevice);
+            _spriteBatch = new SpriteBatch(GraphicsDevice);
             inputHelper = new InputHelper();
+            settingsManager = new SettingsManager(_screen);
 
             _player = new Player();
             _player.LoadData();
@@ -60,12 +61,9 @@ namespace ProjectDelta
 
             // Create camera
             _camera = new(_screen.VirtualWidth, _screen.VirtualHeight);
-            _camera.Zoom *= new Vector2(1f);
+            //_camera.Zoom *= new Vector2(1f);
 
-            OptionsButton = new Button();
-            OptionsButton.CreateButton(GameData.TextureMap["Wrench"], GameData.TextureMap["Wrench"], false);
-            OptionsButton.location = new Vector2(_screen.VirtualWidth - 24, 8);
-            OptionsButton.buttonPress += SettingsPress;
+            settingsManager.AssignButtonFunctions(_camera);
         }
 
         protected override void Update(GameTime gameTime)
@@ -73,16 +71,15 @@ namespace ProjectDelta
             if(this.IsActive)
             {
                 Active = true;
-                GameData.UIScale = 1F;
+                //Fix Button Scale Y Position For Offset.
+                //GameData.UIScale = 1;
                 inputHelper.Update(_screen, _camera);
                 float deltatime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
 
                 #region Main Input
-                if (inputHelper.IsKeyDown(Keys.Escape))
-                {
-                    Exit();
-                }
+
+                // Exit();
                 if (inputHelper.IsKeyPress(Keys.D1))
                 {
                     if (!_screen._isFullscreen)
@@ -107,85 +104,90 @@ namespace ProjectDelta
                 }
                 #endregion
 
-                if (inputHelper.IsKeyDown(Keys.Right))
-                    currtype = Itemtypes.Battery;
-                if (inputHelper.IsKeyDown(Keys.Left))
-                    currtype = Itemtypes.Tower;
 
-
-                if (inputHelper.IsKeyPress(Keys.X))
+                if (!GameData.IsPaused)
                 {
-                    GameObject newObject = new GameObject();
+                    if (inputHelper.IsKeyDown(Keys.Right))
+                        currtype = Itemtypes.Battery;
+                    if (inputHelper.IsKeyDown(Keys.Left))
+                        currtype = Itemtypes.Tower;
 
-                    switch (currtype)
+                    if (inputHelper.IsKeyPress(Keys.X))
                     {
-                        case Itemtypes.Tower:
-                            {
-                                newObject = new Tower(inputHelper);
-                                break;
-                            }
-                        case Itemtypes.Battery:
-                            {
-                                newObject = new Battery(inputHelper);
-                                break;
-                            }
+                        GameObject newObject = new GameObject();
+
+                        switch (currtype)
+                        {
+                            case Itemtypes.Tower:
+                                {
+                                    newObject = new Tower(inputHelper);
+                                    break;
+                                }
+                            case Itemtypes.Battery:
+                                {
+                                    newObject = new Battery(inputHelper);
+                                    break;
+                                }
+                        }
+                        GameData.GameObjects.Add(newObject);
                     }
-                    GameData.GameObjects.Add(newObject);
+
+                    #region PowerLines
+
+                    // Create Power Line Pair
+                    if (inputHelper.IsKeyPress(Keys.Z))
+                    {
+                        if (isFirstClick)
+                        {
+                            //Create First Tower
+                            firstpoint = new Vector2(inputHelper.WorldMousePosition.X, inputHelper.WorldMousePosition.Y);
+                            firsttower = new Tower(inputHelper);
+                            GameData.GameObjects.Add(firsttower);
+                            isFirstClick = false;
+                        }
+                        else
+                        {
+                            //Create Last Tower
+                            lastpoint = new Vector2(inputHelper.WorldMousePosition.X, inputHelper.WorldMousePosition.Y);
+                            lasttower = new Tower(inputHelper);
+                            GameData.GameObjects.Add(lasttower);
+
+                            // Create the power line and associate it with the towers.
+                            PowerLine powerLine = new PowerLine(firsttower, lasttower);
+                            GameData.PowerLines.Add(powerLine);
+                            powerLine.CreateLine();
+                            isFirstClick = true;
+                        }
+                    }
+
+                    // Remove Power Line Pair
+                    if (inputHelper.IsMouseButtonPress(MouseButtons.RightButton))
+                    {
+                        if (GameData.PowerLines.Count > 0)
+                        {
+                            // Get the first power line. (TEMP)
+                            // We Remove Both Towers ATM.
+                            PowerLine firstPowerLine = GameData.PowerLines[0];
+                            firstPowerLine.RemoveTower(firsttower);
+                            firstPowerLine.RemoveTower(lasttower);
+                        }
+                    }
+
+                    #endregion
+
+                    //Ensure camera is centered on player
+                    _player.Update(gameTime, deltatime, inputHelper);
+                    _camera.Position = new Vector2(_player.Position.X + 8, _player.Position.Y + 8);
+                    _camera.CenterOrigin();
                 }
 
-                #region PowerLines
-
-                // Create Power Line Pair
-                if (inputHelper.IsKeyPress(Keys.Z))
-                {
-                    if (isFirstClick)
-                    {
-                        //Create First Tower
-                        firstpoint = new Vector2(inputHelper.WorldMousePosition.X, inputHelper.WorldMousePosition.Y);
-                        firsttower = new Tower(inputHelper);
-                        GameData.GameObjects.Add(firsttower);
-                        isFirstClick = false;
-                    }
-                    else
-                    {
-                        //Create Last Tower
-                        lastpoint = new Vector2(inputHelper.WorldMousePosition.X, inputHelper.WorldMousePosition.Y);
-                        lasttower = new Tower(inputHelper);
-                        GameData.GameObjects.Add(lasttower);
-
-                        // Create the power line and associate it with the towers.
-                        PowerLine powerLine = new PowerLine(firsttower, lasttower);
-                        GameData.PowerLines.Add(powerLine);
-                        powerLine.CreateLine();
-                        isFirstClick = true;
-                    }
-                }
-
-                // Remove Power Line Pair
-                if (inputHelper.IsMouseButtonPress(MouseButtons.RightButton))
-                {
-                    if (GameData.PowerLines.Count > 0)
-                    {
-                        // Get the first power line. (TEMP)
-                        // We Remove Both Towers ATM.
-                        PowerLine firstPowerLine = GameData.PowerLines[0];
-                        firstPowerLine.RemoveTower(firsttower);
-                        firstPowerLine.RemoveTower(lasttower);
-                    }
-                }
-
-                #endregion
+                settingsManager.Update(inputHelper, _screen);
 
                 for (int i = 0; i < GameData.ButtonList.Count; i++)
                 {
                     Button button = GameData.ButtonList[i];
                     button.Update(inputHelper.VirtualMousePosition, inputHelper, deltatime, button.location);
                 }
-
-                //Ensure camera is centered on player
-                _player.Update(gameTime, deltatime, inputHelper);
-                _camera.Position = new Vector2(_player.Position.X + 8, _player.Position.Y + 8);
-                _camera.CenterOrigin();
 
                 base.Update(gameTime);
             }
@@ -245,6 +247,9 @@ namespace ProjectDelta
             // Draw UI elements (buttons and text)
             _spriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.AlphaBlend, SamplerState.PointClamp, null, null, null, transformMatrix: _screen.ScreenScaleMatrix);
 
+
+            settingsManager.Draw(_spriteBatch);
+
             if (GameData.IsDebug)
             {
                 _spriteBatch.DrawString(GameData.GameFont, "WorldMousePos: " + ((int)inputHelper.WorldMousePosition.X).ToString() + " " + ((int)inputHelper.WorldMousePosition.Y).ToString(), new Vector2((int)5, (int)5), Color.White, 0f, Vector2.Zero, .35f, SpriteEffects.None, 1f);
@@ -270,19 +275,6 @@ namespace ProjectDelta
             #endregion
 
             base.Draw(gameTime);
-        }
-
-        public void SettingsPress()
-        {
-            if (inputHelper.IsMouseButtonPress(MouseButtons.RightButton))
-            {
-                _camera.Zoom /= new Vector2(2f);
-            }
-
-            if (inputHelper.IsMouseButtonPress(MouseButtons.LeftButton))
-            {
-                _camera.Zoom *= new Vector2(2f);
-            }
         }
     }
 }

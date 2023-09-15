@@ -22,5 +22,10 @@ namespace ProjectDelta.Objects
             //Vector2 origin = new Vector2(position.X + (GameData.TileSize / 2), position.Y + (GameData.TileSize - 2));
             //depth = Helper.GetDepth(origin);
         }
+
+        public virtual void Draw(SpriteBatch _spriteBatch)
+        {
+
+        }
     }
 }

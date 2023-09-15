@@ -20,6 +20,11 @@ namespace ProjectDelta.Objects
             EndTower = endTower;
         }
 
+        public void CreateLine()
+        {
+            CreateLine(StartTower.linePosition, EndTower.linePosition);
+        }
+
         // Remove a tower and its associated power lines.
         public void RemoveTower(Tower tower)
         {
@@ -32,12 +37,6 @@ namespace ProjectDelta.Objects
                 //GameData.gameObjects.Remove(tower);
             }
 
-        }
-
-
-        public void CreateLine()
-        {
-            CreateLine(StartTower.linePosition, EndTower.linePosition);
         }
 
         //Create The Physical Line and Segments
@@ -67,7 +66,6 @@ namespace ProjectDelta.Objects
 
                 newlineVertices[i] = new Vector2(x, y);
             }
-            //LineVertices.Add(newlineVertices);
         }
     }
 }
