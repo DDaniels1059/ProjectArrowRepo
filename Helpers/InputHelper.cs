@@ -18,7 +18,6 @@ namespace ProjectDelta.Helpers
         private Vector2 cursorPos = new(0, 0);
 
         private int previousScrollWheelValue;
-        private int scrollWheelValue;
         public int ScrollWheelValue { get; private set; }
 
         private Vector2 virtualMousePosition;
@@ -49,7 +48,7 @@ namespace ProjectDelta.Helpers
             cursorPos.Y = currentMouseState.Y;
 
             previousScrollWheelValue = ScrollWheelValue;
-            ScrollWheelValue = currentMouseState.ScrollWheelValue;
+            ScrollWheelValue = (int)(currentMouseState.ScrollWheelValue);
 
             // Transform Mouse Position to Our Virtual 320x180 Resolution
             virtualMousePosition = ConvertScreenToVirtualResolution(_screen, cursorPos);

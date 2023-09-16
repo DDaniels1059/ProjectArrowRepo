@@ -49,7 +49,7 @@ namespace ProjectDelta.Objects
         }
 
         //Calculate The Sag For Those Segments
-        private void CalculateSaggingLine(Vector2 startPoint, Vector2 endPoint, Vector2[] newlineVertices, int numberOfSegments, float sagAmount)
+        private static void CalculateSaggingLine(Vector2 startPoint, Vector2 endPoint, Vector2[] newlineVertices, int numberOfSegments, float sagAmount)
         {
             for (int i = 0; i <= numberOfSegments; i++)
             {
@@ -64,7 +64,8 @@ namespace ProjectDelta.Objects
                     y += sagOffset;
                 }
 
-                newlineVertices[i] = new Vector2(x, y);
+                newlineVertices[i].X = (int)x;
+                newlineVertices[i].Y = (int)y;
             }
         }
     }

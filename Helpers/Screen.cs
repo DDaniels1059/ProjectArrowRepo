@@ -11,6 +11,7 @@ namespace ProjectDelta.Helpers
 {
     public class Screen
     {
+        public static bool IsResizing;
         public int VirtualWidth { get; private set; }
         public int VirtualHeight { get; private set; }
         public int ViewWidth { get; private set; }
@@ -32,9 +33,8 @@ namespace ProjectDelta.Helpers
             }
         }
 
-        public static bool _isResizing;
 
-        public bool _isFullscreen { get; private set; }
+        public bool IsFullscreen { get; private set; }
 
 
         //  Screen scale matrix
@@ -44,16 +44,16 @@ namespace ProjectDelta.Helpers
         public Viewport Viewport { get; private set; }
 
         private GraphicsDeviceManager _graphics;
-        private GraphicsDevice GraphicsDevice;
-        private GameWindow Window;
+        private GraphicsDevice _graphicsDevice;
+        private GameWindow _window;
 
         public Screen(GraphicsDeviceManager _graphics, GraphicsDevice GraphicsDevice, GameWindow Window)
         {
-            _isFullscreen = false;
+            IsFullscreen = false;
 
             this._graphics = _graphics;
-            this.Window = Window;
-            this.GraphicsDevice = GraphicsDevice;
+            this._window = Window;
+            this._graphicsDevice = GraphicsDevice;
 
             Window.AllowUserResizing = true;
 
@@ -88,79 +88,93 @@ namespace ProjectDelta.Helpers
 
         private void OnWindowSizeChanged(object sender, EventArgs e)
         {
-            if (Window.ClientBounds.Width > 0 && Window.ClientBounds.Height > 0 && !_isResizing)
+            if (_window.ClientBounds.Width > 0 && _window.ClientBounds.Height > 0 && !IsResizing)
             {
-                _isResizing = true;
+                IsResizing = true;
                 _viewPadding = 0;
-                _graphics.PreferredBackBufferWidth = Window.ClientBounds.Width;
-                _graphics.PreferredBackBufferHeight = Window.ClientBounds.Height;
+                _graphics.PreferredBackBufferWidth = _window.ClientBounds.Width;
+                _graphics.PreferredBackBufferHeight = _window.ClientBounds.Height;
                 UpdateView();
-                _isResizing = false;
+                IsResizing = false;
             }
         }
 
         public void SetFullscreen()
         {
-            _isFullscreen = true;
-            _isResizing = true;
+            IsFullscreen = true;
+            IsResizing = true;
+            ViewPadding = _viewPadding;
+            _graphics.PreferredBackBufferWidth = _graphics.GraphicsDevice.Adapter.CurrentDisplayMode.Width;
+            _graphics.PreferredBackBufferHeight = _graphics.GraphicsDevice.Adapter.CurrentDisplayMode.Height;
+            _graphics.HardwareModeSwitch = true;
+            _graphics.IsFullScreen = true;
+            _graphics.ApplyChanges();
+            Console.WriteLine("FULLSCREEN");
+            IsResizing = false;
+        }
+
+        public void SetBorderless()
+        {
+            IsFullscreen = true;
+            IsResizing = true;
             ViewPadding = _viewPadding;
             _graphics.PreferredBackBufferWidth = _graphics.GraphicsDevice.Adapter.CurrentDisplayMode.Width;
             _graphics.PreferredBackBufferHeight = _graphics.GraphicsDevice.Adapter.CurrentDisplayMode.Height;
             _graphics.IsFullScreen = true;
+            _graphics.HardwareModeSwitch = false;
             _graphics.ApplyChanges();
             Console.WriteLine("FULLSCREEN");
-            _isResizing = false;
+            IsResizing = false;
         }
-
 
         public void SetWindowed(int width, int height)
         {
             if (width > 0 && height > 0)
             {
-                _isFullscreen = false;
-                _isResizing = true;
+                IsFullscreen = false;
+                IsResizing = true;
                 _graphics.PreferredBackBufferWidth = width;
                 _graphics.PreferredBackBufferHeight = height;
                 _graphics.IsFullScreen = false;
                 _graphics.ApplyChanges();
                 Console.WriteLine("WINDOW-" + width + "x" + height);
-                _isResizing = false;
+                IsResizing = false;
             }
         }
 
         private void UpdateView()
         {
-            float screenWidth = GraphicsDevice.PresentationParameters.BackBufferWidth;
-            float screenHeight = GraphicsDevice.PresentationParameters.BackBufferHeight;
+            float ScreenWidth = _graphicsDevice.PresentationParameters.BackBufferWidth;
+            float screenHeight = _graphicsDevice.PresentationParameters.BackBufferHeight;
 
             // get View Size
-            if (screenWidth / (float)VirtualWidth > screenHeight / (float)VirtualHeight)
+            if (ScreenWidth / (float)VirtualWidth > screenHeight / (float)VirtualHeight)
             {
                 ViewWidth = (int)(screenHeight / (float)VirtualHeight * (float)VirtualWidth);
                 ViewHeight = (int)screenHeight;
             }
             else
             {
-                ViewWidth = (int)screenWidth;
-                ViewHeight = (int)(screenWidth / (float)VirtualWidth * (float)VirtualHeight);
+                ViewWidth = (int)ScreenWidth;
+                ViewHeight = (int)(ScreenWidth / (float)VirtualWidth * (float)VirtualHeight);
             }
 
             // apply View Padding
-            float aspect = (float)ViewHeight / (float)ViewWidth;
+            float Aspect = (float)ViewHeight / (float)ViewWidth;
             ViewWidth -= ViewPadding * 2;
-            ViewHeight -= (int)(aspect * (float)ViewPadding * 2f);
+            ViewHeight -= (int)(Aspect * (float)ViewPadding * 2f);
 
 
             // update screen matrix
-            var xscale = (float)ViewWidth / (float)VirtualWidth;
-            var yscale = (float)ViewHeight / (float)VirtualHeight;
+            var XScale = (float)ViewWidth / (float)VirtualWidth;
+            var YScale = (float)ViewHeight / (float)VirtualHeight;
 
-            ScreenScaleMatrix = Matrix.CreateScale((float)xscale, (float)yscale, 1);
+            ScreenScaleMatrix = Matrix.CreateScale((float)XScale, (float)YScale, 1);
 
             // update viewport
             Viewport = new Viewport
             {
-                X = (int)(screenWidth / 2f - (float)(ViewWidth / 2)),
+                X = (int)(ScreenWidth / 2f - (float)(ViewWidth / 2)),
                 Y = (int)(screenHeight / 2f - (float)(ViewHeight / 2)),
                 Width = ViewWidth,
                 Height = ViewHeight,
