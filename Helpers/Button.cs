@@ -19,7 +19,6 @@ namespace ProjectDelta
         private bool _isPressed = false;
         private bool _isToggle = false;
         private bool _isAnchoredRight = false;
-        private bool _isAnchoredBottom = false;
         private bool _toggled = false;
         private float _timer = 100;
 
@@ -29,17 +28,21 @@ namespace ProjectDelta
         private int _scaledWidth;
         private int _scaledHeight;
         private int _sideAnchorOffset;
-        private int _verticalAnchorOffset;
-        private int _buttonSetCount; 
+        private int _verticalOffset;
 
-        public Vector2 location;
+        public Vector2 position;
         private Vector2 _offset;
         private SpriteEffects _flip;
 
+        public Rectangle TextRectanlge;
         //Default Press Action
+        //If using TOGGLE button use this function as well when assigning function for button. 
+        //Example: DebugToggle.buttonPress += NewDebugPressFunction;
+        //Will allow the default toggle function to exist along side the new one. You could just use the below code,
+        //but this allows it to be a bit cleaner.
         private void DefaultPress()
         {
-            Debug.WriteLine("Button Pressed: ADD New Function");
+            Debug.WriteLine("Button Pressed");
 
             if (_isToggle)
             {
@@ -54,14 +57,13 @@ namespace ProjectDelta
             }
         }
 
-        public Button(Rectangle defaultSprite, Rectangle pressedSprite, bool isToggle, bool isFlippedHorizontal, bool isAnchoredRight, bool isAnchoredBottom, int buttonSetCount = 1)
+        public Button(Rectangle TextRectangle, Rectangle defaultSprite, Rectangle pressedSprite, bool isToggle, bool isFlippedHorizontal, bool isAnchoredRight)
         {
+            this.TextRectanlge = TextRectangle;
             this._isToggle = isToggle;
             this._defaultSprite = defaultSprite;
             this._pressedSprite = pressedSprite;
             this._isAnchoredRight = isAnchoredRight;
-            this._isAnchoredBottom = isAnchoredBottom;
-            this._buttonSetCount = buttonSetCount;
             if (isFlippedHorizontal)
             {
                 _flip = SpriteEffects.FlipHorizontally;
@@ -74,6 +76,7 @@ namespace ProjectDelta
             GameData.ButtonList.Add(this);
         }
 
+        // Returns Current Toggle Bool
         public bool GetToggleState()
         {
             return _toggled;
@@ -84,39 +87,51 @@ namespace ProjectDelta
         {
             if (canDraw)
             {
+                //This Will Scale The Buttons Evenly By The Current UIScale
+                //We Subtract Anything That Is Not Anchored Right By TileSize So It Will Be Offset Correctly
+                //
                 _scaledWidth = (int)(_defaultSprite.Width * GameData.UIScale);
                 _scaledHeight = (int)(_defaultSprite.Height * GameData.UIScale);
-                _offset.X = (int)(_defaultSprite.Width - _scaledWidth);
-                _offset.Y = (int)(_defaultSprite.Width - _scaledWidth) / 2;
+                if(!_isAnchoredRight) 
+                {
+                    _offset.X = (int)(_defaultSprite.Width - _scaledWidth) - GameData.TileSize;
+;
+                }
+                else
+                {
+                    _offset.X = (int)(_defaultSprite.Width - _scaledWidth);
+                }
+                _offset.Y = (int)(_defaultSprite.Width - _scaledWidth) - 1;
 
 
 
                 if (GameData.UIScale > 1)
                 {
+                    //This Will Scale The Button To The LEFT OR RIGHT Based On The isAnchoredBool
+                    //The  2 && -2 Are Just For The Scale Of The Offset. The Larger It Is, The Bigger Gap Between The Button
+                    //And Whatever It's X position is Tied To, When Scaled.
                     if (!_isAnchoredRight)
                     {
-                        _sideAnchorOffset = (int)(-10 * GameData.UIScale) * (int)(GameData.UIScale);
+                        _sideAnchorOffset = (int)(-2 * GameData.UIScale) * (int)(GameData.UIScale) - GameData.TileSize;
                     }
                     else
                     {
-                        _sideAnchorOffset = (int)(10 * GameData.UIScale) * (int)(GameData.UIScale);
+                       _sideAnchorOffset = (int)(2 * GameData.UIScale) * (int)(GameData.UIScale);
                     }
 
-                    if (!_isAnchoredBottom)
-                    {
-                        _verticalAnchorOffset = 20;
-                    }
-                    else
-                    {
-                        _verticalAnchorOffset = (int)((_buttonSetCount)) * (int)(10 * GameData.UIScale);
-                    }
+                    // This Will Scale The Buttons Vertical Position :
+                    // In This Case Down By An Amount that will Center It To The Text Rectangles
+                    // Look In Settings Menu For Those Examples, *Please* Forgive The Messy Code
+                    _verticalOffset = (int)(2 * GameData.UIScale) * (int)(GameData.UIScale) - (int)GameData.UIScale;
 
                     _offset.X = (int)((_defaultSprite.Width - _scaledWidth) / 2) + _sideAnchorOffset;
-                    _offset.Y = (int)((_defaultSprite.Width - _scaledWidth) / 2) + _verticalAnchorOffset;
+                    _offset.Y = (int)((_defaultSprite.Width - _scaledWidth) / 2) + _verticalOffset;
                 }
 
-                bounds.X = ((int)location.X + (int)_offset.X);
-                bounds.Y = ((int)location.Y + (int)_offset.Y);
+
+                //This Scales Up The Button Bounds, Used For Input Detection
+                bounds.X = ((int)position.X + (int)_offset.X);
+                bounds.Y = ((int)position.Y + (int)_offset.Y);
                 bounds.Width = _scaledWidth;
                 bounds.Height = _scaledHeight;
 
@@ -132,7 +147,7 @@ namespace ProjectDelta
                     if (_timer <= 0)
                     {
                         _isPressed = false;
-                        _timer = 100;
+                        _timer = 100;                    
                         Debug.WriteLine("Button Released");
                     }
                 }

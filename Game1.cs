@@ -54,7 +54,7 @@ namespace ProjectDelta
             GameData.LoadData(Content, GraphicsDevice);
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             _inputHelper = new InputHelper();
-            _settingsMenu = new SettingsMenu();
+            _settingsMenu = new SettingsMenu(_screen);
 
             _player = new Player(); 
             _player.LoadData();
@@ -69,8 +69,6 @@ namespace ProjectDelta
             if(this.IsActive)
             {
                 Active = true;
-                //Fix Button Scale Y Position For Offset.
-                //GameData.UIScale = 1;
                 _inputHelper.Update(_screen, _camera);
                 float deltatime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
@@ -78,17 +76,6 @@ namespace ProjectDelta
                 #region Main Input
 
                 // Exit();
-                if (_inputHelper.IsKeyPress(Keys.D2))
-                {
-                    if (!GameData.IsDebug)
-                    {
-                        GameData.IsDebug = true;
-                    }
-                    else
-                    {
-                        GameData.IsDebug = false;
-                    }
-                }
                 #endregion
 
                 if (_inputHelper.IsKeyPress(Keys.C))
@@ -172,10 +159,12 @@ namespace ProjectDelta
 
                     //Ensure camera is centered on player
                     _player.Update(gameTime, deltatime, _inputHelper);
-                    _camera.Position = new Vector2(_player.Position.X + 8, _player.Position.Y + 8);
-                    _camera.CenterOrigin();
+
                 }
 
+
+                _camera.Position = new Vector2(_player.Position.X + 8, _player.Position.Y + 8);
+                _camera.CenterOrigin();
                 _settingsMenu.Update(_inputHelper);
 
                 for (int i = 0; i < GameData.ButtonList.Count; i++)
@@ -247,8 +236,8 @@ namespace ProjectDelta
 
             if (GameData.IsDebug)
             {
-                _spriteBatch.DrawString(GameData.GameFont, "WorldMousePos: " + ((int)_inputHelper.WorldMousePosition.X).ToString() + " " + ((int)_inputHelper.WorldMousePosition.Y).ToString(), new Vector2((int)5, (int)5), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 1f);
-                _spriteBatch.DrawString(GameData.GameFont, "VirtualMousePos: " + ((int)_inputHelper.VirtualMousePosition.X).ToString() + " " + ((int)_inputHelper.VirtualMousePosition.Y).ToString(), new Vector2((int)5, (int)15), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 1f);
+                _spriteBatch.DrawString(GameData.GameFont, "WorldMousePos: " + ((int)_inputHelper.WorldMousePosition.X).ToString() + " " + ((int)_inputHelper.WorldMousePosition.Y).ToString(), new Vector2((int)5, (int)5), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, .98f);
+                _spriteBatch.DrawString(GameData.GameFont, "VirtualMousePos: " + ((int)_inputHelper.VirtualMousePosition.X).ToString() + " " + ((int)_inputHelper.VirtualMousePosition.Y).ToString(), new Vector2((int)5, (int)15), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, .98f);
             }
             
 
