@@ -15,11 +15,11 @@ namespace ProjectDelta.Objects
         public Battery(InputHelper inputHelper)
         {
             texture = GameData.TextureMap["Battery"];
-            position = new Vector2((int)(inputHelper.WorldMousePosition.X - texture.Width / 2), (int)(inputHelper.WorldMousePosition.Y - 30));
+            position = new Vector2((int)(inputHelper.WorldMousePosition.X - texture.Width / 2), (int)(inputHelper.WorldMousePosition.Y - 12));
             linePosition = new Vector2(position.X + (texture.Width / 2), position.Y);
-            origin = new Vector2((int)(position.X + GameData.TileSize / 2), (int)(position.Y + 24));
+            origin = new Vector2((int)(position.X + GameData.TileSize / 2), (int)(position.Y + 12));
             depth = Helper.GetDepth(origin);
-            collider = new Rectangle((int)position.X, (int)position.Y + 20, texture.Width, texture.Width / 2);
+            collider = new Rectangle((int)position.X + 1, (int)position.Y + 8, texture.Width - 2, texture.Width / 2);
         }
     }
 }

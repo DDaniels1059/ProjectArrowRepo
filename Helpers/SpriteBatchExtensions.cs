@@ -21,10 +21,10 @@ namespace ProjectDelta.Helpers
         public static void DrawHollowRect(this SpriteBatch spriteBatch, Rectangle rect, Color color)
         {
             //  Calculate the rectangle corner positions
-            Point topLeft = new Point(rect.Left, rect.Top);
-            Point topRight = new Point(rect.Right, rect.Top);
-            Point bottomRight = new Point(rect.Right, rect.Bottom);
-            Point bottomLeft = new Point(rect.Left, rect.Bottom);
+            Point topLeft = new(rect.Left, rect.Top);
+            Point topRight = new(rect.Right, rect.Top);
+            Point bottomRight = new(rect.Right, rect.Bottom);
+            Point bottomLeft = new(rect.Left, rect.Bottom);
 
             //  Draw edges corner to corner
             spriteBatch.DrawLine(topLeft, topRight, color);

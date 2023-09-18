@@ -66,16 +66,16 @@ namespace ProjectDelta.Helpers
             return ScrollWheelValue < previousScrollWheelValue;
         }
 
-        public Vector2 ConvertScreenToVirtualResolution(Screen _screen, Vector2 mousePosition)
+        public static Vector2 ConvertScreenToVirtualResolution(Screen _screen, Vector2 mousePosition)
         {
             // Calculate the position within the viewport
-            Vector2 viewportPosition = new Vector2(
+            Vector2 viewportPosition = new(
                 (mousePosition.X - _screen.Viewport.X) / _screen.Viewport.Width,
                 (mousePosition.Y - _screen.Viewport.Y) / _screen.Viewport.Height
             );
 
             // Convert to the virtual resolution coords
-            Vector2 virtualResolutionPosition = new Vector2(
+            Vector2 virtualResolutionPosition = new(
                 viewportPosition.X * _screen.VirtualWidth,
                 viewportPosition.Y * _screen.VirtualHeight
             );

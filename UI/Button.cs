@@ -8,7 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using static ProjectDelta.Helpers.InputHelper;
 
-namespace ProjectDelta
+namespace ProjectDelta.UI
 {
     public class Button
     {
@@ -34,7 +34,6 @@ namespace ProjectDelta
         private Vector2 _offset;
         private SpriteEffects _flip;
 
-        public Rectangle TextRectanlge;
         //Default Press Action
         //If using TOGGLE button use this function as well when assigning function for button. 
         //Example: DebugToggle.buttonPress += NewDebugPressFunction;
@@ -57,13 +56,12 @@ namespace ProjectDelta
             }
         }
 
-        public Button(Rectangle TextRectangle, Rectangle defaultSprite, Rectangle pressedSprite, bool isToggle, bool isFlippedHorizontal, bool isAnchoredRight)
+        public Button(Rectangle defaultSprite, Rectangle pressedSprite, bool isToggle, bool isFlippedHorizontal, bool isAnchoredRight)
         {
-            this.TextRectanlge = TextRectangle;
-            this._isToggle = isToggle;
-            this._defaultSprite = defaultSprite;
-            this._pressedSprite = pressedSprite;
-            this._isAnchoredRight = isAnchoredRight;
+            _isToggle = isToggle;
+            _defaultSprite = defaultSprite;
+            _pressedSprite = pressedSprite;
+            _isAnchoredRight = isAnchoredRight;
             if (isFlippedHorizontal)
             {
                 _flip = SpriteEffects.FlipHorizontally;
@@ -92,16 +90,16 @@ namespace ProjectDelta
                 //
                 _scaledWidth = (int)(_defaultSprite.Width * GameData.UIScale);
                 _scaledHeight = (int)(_defaultSprite.Height * GameData.UIScale);
-                if(!_isAnchoredRight) 
+                if (!_isAnchoredRight)
                 {
-                    _offset.X = (int)(_defaultSprite.Width - _scaledWidth) - GameData.TileSize;
-;
+                    _offset.X = _defaultSprite.Width - _scaledWidth - GameData.TileSize;
                 }
                 else
                 {
-                    _offset.X = (int)(_defaultSprite.Width - _scaledWidth);
+                    _offset.X = _defaultSprite.Width - _scaledWidth;
                 }
-                _offset.Y = (int)(_defaultSprite.Width - _scaledWidth) - 1;
+
+                _offset.Y = _defaultSprite.Width - _scaledWidth - 1;
 
 
 
@@ -112,26 +110,26 @@ namespace ProjectDelta
                     //And Whatever It's X position is Tied To, When Scaled.
                     if (!_isAnchoredRight)
                     {
-                        _sideAnchorOffset = (int)(-2 * GameData.UIScale) * (int)(GameData.UIScale) - GameData.TileSize;
+                        _sideAnchorOffset = (int)(-2 * GameData.UIScale) * (int)GameData.UIScale - GameData.TileSize;
                     }
                     else
                     {
-                       _sideAnchorOffset = (int)(2 * GameData.UIScale) * (int)(GameData.UIScale);
+                        _sideAnchorOffset = (int)(2 * GameData.UIScale) * (int)GameData.UIScale;
                     }
 
                     // This Will Scale The Buttons Vertical Position :
                     // In This Case Down By An Amount that will Center It To The Text Rectangles
                     // Look In Settings Menu For Those Examples, *Please* Forgive The Messy Code
-                    _verticalOffset = (int)(2 * GameData.UIScale) * (int)(GameData.UIScale) - (int)GameData.UIScale;
+                    _verticalOffset = (int)(2 * GameData.UIScale) * (int)GameData.UIScale - (int)GameData.UIScale;
 
-                    _offset.X = (int)((_defaultSprite.Width - _scaledWidth) / 2) + _sideAnchorOffset;
-                    _offset.Y = (int)((_defaultSprite.Width - _scaledWidth) / 2) + _verticalOffset;
+                    _offset.X = (_defaultSprite.Width - _scaledWidth) / 2 + _sideAnchorOffset;
+                    _offset.Y = (_defaultSprite.Width - _scaledWidth) / 2 + _verticalOffset;
                 }
 
 
                 //This Scales Up The Button Bounds, Used For Input Detection
-                bounds.X = ((int)position.X + (int)_offset.X);
-                bounds.Y = ((int)position.Y + (int)_offset.Y);
+                bounds.X = (int)position.X + (int)_offset.X;
+                bounds.Y = (int)position.Y + (int)_offset.Y;
                 bounds.Width = _scaledWidth;
                 bounds.Height = _scaledHeight;
 
@@ -147,8 +145,8 @@ namespace ProjectDelta
                     if (_timer <= 0)
                     {
                         _isPressed = false;
-                        _timer = 100;                    
-                        Debug.WriteLine("Button Released");
+                        _timer = 100;
+                        //Debug.WriteLine("Button Released");
                     }
                 }
             }
@@ -183,5 +181,5 @@ namespace ProjectDelta
             if (GameData.IsDebug && canDraw)
                 _spriteBatch.DrawHollowRect(bounds, Color.Red);
         }
-    }   
+    }
 }

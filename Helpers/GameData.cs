@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using ProjectDelta.Objects;
+using ProjectDelta.UI;
 using System;
 using System.Collections.Generic;
 
@@ -45,7 +46,7 @@ namespace ProjectDelta.Helpers
                 ["LeftArrow"] = new Rectangle(32, 0, TileSize, TileSize),
                 ["LeftArrowPressed"] = new Rectangle(48, 0, TileSize, TileSize),
                 ["Tower"] = new Rectangle(64, 0, TileSize, TileSize * 3),
-                ["PinkRect"] = new Rectangle(80, 0, TileSize, TileSize),
+                ["Battery"] = new Rectangle(80, 0, TileSize, TileSize),
                 ["DebugButton"] = new Rectangle(16, 16, TileSize, TileSize),
                 ["DebugButtonPressed"] = new Rectangle(32, 16, TileSize, TileSize)
             };

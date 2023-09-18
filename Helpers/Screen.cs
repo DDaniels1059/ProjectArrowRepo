@@ -11,7 +11,7 @@ namespace ProjectDelta.Helpers
 {
     public class Screen
     {
-        public static bool IsResizing;
+        public static bool IsResizing { get; private set; }
         public int VirtualWidth { get; private set; }
         public int VirtualHeight { get; private set; }
         public int ViewWidth { get; private set; }

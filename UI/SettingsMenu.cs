@@ -28,9 +28,12 @@ namespace ProjectDelta.UI
         private string currWindowString;
 
         // Set Scale Display Text
-        private int currentUIScale = 0;
-        private static readonly string[] ScaleString = new string[2] { " UI SCALE x1 ", " UI SCALE x2 "};
+        private static readonly string[] ScaleString = new string[3] { " UI SCALE x1 ", " UI SCALE x1.5 ", " UI SCALE x2 "};
         private string currUIScaleString;
+
+        // Set Zoom Display Text
+        private static readonly string[] ZoomString = new string[4] { " ZOOM x0.5 ", " ZOOM x1 ", " ZOOM x2 ", " ZOOM x4 " };
+        private string currZoomString;
 
         // Text Rectangles We Base The Button Position On
         private Vector2 WindowSelectionTextSize;
@@ -41,7 +44,6 @@ namespace ProjectDelta.UI
 
         private Vector2 ZoomSelectionTextSize;
         private Rectangle ZoomTextRectangle;
-        private string ZoomString = " CAMERA ZOOM ";
 
         // Make The Code Cleaner
         private static List<Rectangle> TextRectangles;
@@ -53,9 +55,10 @@ namespace ProjectDelta.UI
         public SettingsMenu(Screen _screen)
         {
             int X = (_screen.VirtualWidth / 2) - (280 / 2);
-            BackDrop = new Rectangle(X, 0, 280, _screen.VirtualHeight + 150);
+            BackDrop = new Rectangle(X, 0, 280, _screen.VirtualHeight + 170);
             currWindowString = WindowString[0];
             currUIScaleString = ScaleString[0];
+            currZoomString = ZoomString[1];
             MeasureStrings();
 
             TextRectangles = new List<Rectangle>();
@@ -75,13 +78,13 @@ namespace ProjectDelta.UI
             CreateButton(ref DebugToggle, true, false, false, GameData.TextureMap["DebugButton"], GameData.TextureMap["DebugButtonPressed"]);
         }
 
-        private void CreateButton(ref Button button, bool isToggle, bool isFlipped, bool isAnchoredRight, Rectangle defaultSprite,Rectangle pressedSprite)
+        private static void CreateButton(ref Button button, bool isToggle, bool isFlipped, bool isAnchoredRight, Rectangle defaultSprite,Rectangle pressedSprite)
         {
             button = new Button(defaultSprite, pressedSprite, isToggle, isFlipped, isAnchoredRight);
             SettingsButtons.Add(button);
         }
 
-        private void CreateRectangle(Rectangle rectangle)
+        private static void CreateRectangle(Rectangle rectangle)
         {
             rectangle = new Rectangle(0, 0, rectangle.Width, rectangle.Height);
             TextRectangles.Add(rectangle);
@@ -125,80 +128,14 @@ namespace ProjectDelta.UI
                 }
             }
         }
-       
-        private void CalculateButtons()
-        {
-            MeasureStrings();
-
-            //I Base The Buttons Location On Their Respective TextRectangle (If They Have One)
-            //Otherwise The Location Is Based On Whatever Rect It's Relative To For My Needs
-            //The Magic Number 320 Is Just The Virtual Width. If You See This Abomination,
-            //I Gave Up On Making A Simpler Solution. Sorry
-            WindowTextRectangle.X = (320 / 2) - ((int)WindowSelectionTextSize.X / 2);
-            WindowTextRectangle.Y = 10;
-            WindowTextRectangle.Width = (int)WindowSelectionTextSize.X;
-            WindowTextRectangle.Height = (int)WindowSelectionTextSize.Y * 2;
-
-            UITextRectangle.X = (320 / 2) - ((int)UISelectionTextSize.X / 2);
-            UITextRectangle.Y = WindowTextRectangle.Bottom + (10 * (int)GameData.UIScale);
-            UITextRectangle.Width = (int)UISelectionTextSize.X;
-            UITextRectangle.Height = (int)UISelectionTextSize.Y * 2;
-
-            ZoomTextRectangle.X = (320 / 2) - ((int)ZoomSelectionTextSize.X / 2);
-            ZoomTextRectangle.Y = UITextRectangle.Bottom + (10 * (int)GameData.UIScale);
-            ZoomTextRectangle.Width = (int)ZoomSelectionTextSize.X;
-            ZoomTextRectangle.Height = (int)ZoomSelectionTextSize.Y * 2;
-
-
-            //Update The Buttons Position Based On Its Relative Text Rectangle
-            //If The Button Is Not Anchored To The Right We Subtract The TileSize So It Is 
-
-            WindowSelectionLeft.position = WindowTextRectangle.Location.ToVector2();
-            WindowSelectionRight.position = new Vector2(WindowTextRectangle.Right, WindowTextRectangle.Y);
-
-            UISelectionLeft.position = UITextRectangle.Location.ToVector2();
-            UISelectionRight.position = new Vector2(UITextRectangle.Right, UITextRectangle.Y);
-
-            ZoomSelectionLeft.position = ZoomTextRectangle.Location.ToVector2();
-            ZoomSelectionRight.position = new Vector2(ZoomTextRectangle.Right, ZoomTextRectangle.Y);
-
-            DebugToggle.position.X = ZoomSelectionLeft.position.X;
-            DebugToggle.position.Y = ZoomTextRectangle.Bottom + (10 * (int)GameData.UIScale);
-        }
-
-        private void MeasureStrings()
-        {
-            WindowSelectionTextSize = (GameData.GameFont.MeasureString(currWindowString) * GameData.UIScale); // Measure the text size
-            UISelectionTextSize = (GameData.GameFont.MeasureString(currUIScaleString) * GameData.UIScale); // Measure the text size
-            ZoomSelectionTextSize = (GameData.GameFont.MeasureString(ZoomString) * GameData.UIScale); // Measure the text size
-        }
-
-        private void UpdateButtonForScroll()
-        {
-            WindowTextRectangle.Y = BackDrop.Y + 10;
-            UITextRectangle.Y = WindowTextRectangle.Bottom + (10 * (int)GameData.UIScale);
-            ZoomTextRectangle.Y = UITextRectangle.Bottom + (10 * (int)GameData.UIScale);
-
-            WindowSelectionLeft.position.Y = WindowTextRectangle.Y;
-            WindowSelectionRight.position.Y = WindowTextRectangle.Y;
-
-            UISelectionLeft.position.Y = UITextRectangle.Y;
-            UISelectionRight.position.Y = UITextRectangle.Y;            
-
-            ZoomSelectionLeft.position.Y = ZoomTextRectangle.Y;
-            ZoomSelectionRight.position.Y = ZoomTextRectangle.Y;
-
-            DebugToggle.position.X = ZoomSelectionLeft.position.X;
-            DebugToggle.position.Y = ZoomTextRectangle.Bottom + (10 * (int)GameData.UIScale);
-        }
 
         public void Draw(SpriteBatch _spriteBatch)
         {
             if (isOpen)
             {
-                _spriteBatch.DrawString(GameData.GameFont, currWindowString, new Vector2(WindowTextRectangle.X + 1, WindowTextRectangle.Y + (WindowSelectionTextSize.Y / 2)), Color.Black, 0.0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, 1f);
-                _spriteBatch.DrawString(GameData.GameFont, currUIScaleString, new Vector2(UITextRectangle.X + 1, UITextRectangle.Y + (UISelectionTextSize.Y / 2)), Color.Black, 0.0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, 1f);
-                _spriteBatch.DrawString(GameData.GameFont, ZoomString, new Vector2(ZoomTextRectangle.X + 1, ZoomTextRectangle.Y + (ZoomSelectionTextSize.Y / 2)), Color.Black, 0.0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, 1f);
+                _spriteBatch.DrawString(GameData.GameFont, currWindowString, new Vector2(WindowTextRectangle.X + (1 * GameData.UIScale), WindowTextRectangle.Y + (WindowSelectionTextSize.Y / 2)), Color.Black, 0.0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, 1f);
+                _spriteBatch.DrawString(GameData.GameFont, currUIScaleString, new Vector2(UITextRectangle.X + (1 * GameData.UIScale), UITextRectangle.Y + (UISelectionTextSize.Y / 2)), Color.Black, 0.0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, 1f);
+                _spriteBatch.DrawString(GameData.GameFont, currZoomString, new Vector2(ZoomTextRectangle.X + (1 * GameData.UIScale), ZoomTextRectangle.Y + (ZoomSelectionTextSize.Y / 2)), Color.Black, 0.0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, 1f);
 
                 if (GameData.IsDebug)
                 {
@@ -209,17 +146,6 @@ namespace ProjectDelta.UI
 
                 _spriteBatch.DrawFilledRect(BackDrop, BackDropColor);
             }
-        }
-
-        public void AssignButtonFunctions(Basic2DCamera _camera, Screen _screen)
-        {
-            ZoomSelectionRight.buttonPress = () => ZoomInPress(_camera);
-            ZoomSelectionLeft.buttonPress = () => ZoomOutPress( _camera);
-            UISelectionRight.buttonPress = UIPlusPress;
-            UISelectionLeft.buttonPress = UIMinusPress;
-            WindowSelectionLeft.buttonPress = () => WindowSelectionLeftPress(_screen);
-            WindowSelectionRight.buttonPress = () => WindowSelectionRightPress(_screen);
-            DebugToggle.buttonPress += DebugPress;
         }
 
         #region Debug Toggle
@@ -239,55 +165,74 @@ namespace ProjectDelta.UI
         #region Zoom Buttons
         private void ZoomInPress(Basic2DCamera _camera)
         {
-            if(_camera.Zoom.X < 4)
+            if (_camera.Zoom.X < 4)
+            {
                 _camera.Zoom *= new Vector2(2f);
+
+                if (_camera.Zoom.X == 0.5f)
+                    currZoomString = ZoomString[0];
+                else if (_camera.Zoom.X == 1f)
+                    currZoomString = ZoomString[1];
+                else if (_camera.Zoom.X == 2f)
+                    currZoomString = ZoomString[2];
+                else if (_camera.Zoom.X == 4f)
+                    currZoomString = ZoomString[3];
+
+                CalculateButtons();
+            }
         }
 
         private void ZoomOutPress(Basic2DCamera _camera)
         {
             if (_camera.Zoom.X > 0.75)
                 _camera.Zoom /= new Vector2(2f);
+
+            if (_camera.Zoom.X == 0.5f)
+                currZoomString = ZoomString[0];
+            else if (_camera.Zoom.X == 1f)
+                currZoomString = ZoomString[1];
+            else if (_camera.Zoom.X == 2f)
+                currZoomString = ZoomString[2];
+            else if (_camera.Zoom.X == 4f)
+                currZoomString = ZoomString[3];
+
+            CalculateButtons();
         }
         #endregion
 
         #region UI Scale Buttons
         private void UIPlusPress()
         {
-            if(GameData.UIScale < 3)
-                GameData.UIScale += 0.5f;
-            currentUIScale = (int)GameData.UIScale;
-            switch (currentUIScale)
+            if (GameData.UIScale < 2.0f)
             {
-                case 1:
+                GameData.UIScale += 0.5f;
+
+                if (GameData.UIScale == 1.0f)
                     currUIScaleString = ScaleString[0];
-                    break;
-                case 2:
+                else if (GameData.UIScale == 1.5f)
                     currUIScaleString = ScaleString[1];
-                    break;
-                default:
-                    break;
+                else if (GameData.UIScale == 2.0f)
+                    currUIScaleString = ScaleString[2];
+
+                CalculateButtons();
             }
-            MeasureStrings();
-            CalculateButtons();
         }
 
         private void UIMinusPress()
         {
-            if (GameData.UIScale > 1)
-                GameData.UIScale -= 0.5f;
-            currentUIScale = (int)GameData.UIScale;
-            switch (currentUIScale)
+            if (GameData.UIScale > 1.0f)
             {
-                case 1:
+                GameData.UIScale -= 0.5f;
+
+                if (GameData.UIScale == 1.0f)
                     currUIScaleString = ScaleString[0];
-                    break;
-                case 2:
+                else if (GameData.UIScale == 1.5f)
                     currUIScaleString = ScaleString[1];
-                    break;
-                default:
-                    break;
+                else if (GameData.UIScale == 2.0f)
+                    currUIScaleString = ScaleString[2];
+
+                CalculateButtons();
             }
-            CalculateButtons();
         }
         #endregion
 
@@ -332,6 +277,84 @@ namespace ProjectDelta.UI
             }
         }
         #endregion
+
+        private void CalculateButtons()
+        {
+            MeasureStrings();
+
+            //I Base The Buttons Location On Their Respective TextRectangle (If They Have One)
+            //Otherwise The Location Is Based On Whatever Rect It's Relative To For My Needs
+            //The Magic Number 320 Is Just The Virtual Width. If You See This Abomination,
+            //I Gave Up On Making A Simpler Solution. Sorry
+            int Num1 = (320 / 2);
+
+            WindowTextRectangle.X = Num1 - ((int)WindowSelectionTextSize.X / 2);
+            WindowTextRectangle.Y = 10 * (int)GameData.UIScale;
+            WindowTextRectangle.Width = (int)WindowSelectionTextSize.X;
+            WindowTextRectangle.Height = (int)WindowSelectionTextSize.Y * 2;
+
+            UITextRectangle.X = Num1 - ((int)UISelectionTextSize.X / 2);
+            UITextRectangle.Y = WindowTextRectangle.Bottom + (10 * (int)GameData.UIScale);
+            UITextRectangle.Width = (int)UISelectionTextSize.X;
+            UITextRectangle.Height = (int)UISelectionTextSize.Y * 2;
+
+            ZoomTextRectangle.X = Num1 - ((int)ZoomSelectionTextSize.X / 2);
+            ZoomTextRectangle.Y = UITextRectangle.Bottom + (10 * (int)GameData.UIScale);
+            ZoomTextRectangle.Width = (int)ZoomSelectionTextSize.X;
+            ZoomTextRectangle.Height = (int)ZoomSelectionTextSize.Y * 2;
+
+
+            //Update The Buttons Position Based On Its Relative Text Rectangle
+            //If The Button Is Not Anchored To The Right We Subtract The TileSize So It Is 
+            WindowSelectionLeft.position = WindowTextRectangle.Location.ToVector2();
+            WindowSelectionRight.position = new Vector2(WindowTextRectangle.Right, WindowTextRectangle.Y);
+
+            UISelectionLeft.position = UITextRectangle.Location.ToVector2();
+            UISelectionRight.position = new Vector2(UITextRectangle.Right, UITextRectangle.Y);
+
+            ZoomSelectionLeft.position = ZoomTextRectangle.Location.ToVector2();
+            ZoomSelectionRight.position = new Vector2(ZoomTextRectangle.Right, ZoomTextRectangle.Y);
+
+            DebugToggle.position.X = ZoomSelectionLeft.position.X;
+            DebugToggle.position.Y = ZoomTextRectangle.Bottom + (20 * (int)GameData.UIScale);
+        }
+
+        private void MeasureStrings()
+        {
+            WindowSelectionTextSize = GameData.GameFont.MeasureString(currWindowString) * GameData.UIScale;
+            UISelectionTextSize = GameData.GameFont.MeasureString(currUIScaleString) * GameData.UIScale;
+            ZoomSelectionTextSize = GameData.GameFont.MeasureString(currZoomString) * GameData.UIScale;
+        }
+
+        private void UpdateButtonForScroll()
+        {
+            WindowTextRectangle.Y = BackDrop.Y + 10 * (int)GameData.UIScale;
+            UITextRectangle.Y = WindowTextRectangle.Bottom + (10 * (int)GameData.UIScale);
+            ZoomTextRectangle.Y = UITextRectangle.Bottom + (10 * (int)GameData.UIScale);
+
+            WindowSelectionLeft.position.Y = WindowTextRectangle.Y;
+            WindowSelectionRight.position.Y = WindowTextRectangle.Y;
+
+            UISelectionLeft.position.Y = UITextRectangle.Y;
+            UISelectionRight.position.Y = UITextRectangle.Y;            
+
+            ZoomSelectionLeft.position.Y = ZoomTextRectangle.Y;
+            ZoomSelectionRight.position.Y = ZoomTextRectangle.Y;
+
+            DebugToggle.position.X = ZoomSelectionLeft.position.X;
+            DebugToggle.position.Y = ZoomTextRectangle.Bottom + (20 * (int)GameData.UIScale);
+        }
+
+        public void AssignButtonFunctions(Basic2DCamera _camera, Screen _screen)
+        {
+            ZoomSelectionRight.buttonPress = () => ZoomInPress(_camera);
+            ZoomSelectionLeft.buttonPress = () => ZoomOutPress( _camera);
+            UISelectionRight.buttonPress = UIPlusPress;
+            UISelectionLeft.buttonPress = UIMinusPress;
+            WindowSelectionLeft.buttonPress = () => WindowSelectionLeftPress(_screen);
+            WindowSelectionRight.buttonPress = () => WindowSelectionRightPress(_screen);
+            DebugToggle.buttonPress += DebugPress;
+        }
 
     }
 
