@@ -1,11 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using ProjectDelta.Helpers;
+using ProjectArrow.Helpers;
 using System;
 using System.Collections.Generic;
 
-namespace ProjectDelta.UI
+namespace ProjectArrow.UI
 {
     public class SettingsMenu
     {
@@ -28,11 +28,11 @@ namespace ProjectDelta.UI
         private string currWindowString;
 
         // Set Scale Display Text
-        private static readonly string[] ScaleString = new string[3] { " UI SCALE x1 ", " UI SCALE x1.5 ", " UI SCALE x2 "};
+        private static readonly string[] ScaleString = new string[2] { " UI SCALE x1 ", " UI SCALE x2 "};
         private string currUIScaleString;
 
         // Set Zoom Display Text
-        private static readonly string[] ZoomString = new string[4] { " ZOOM x0.5 ", " ZOOM x1 ", " ZOOM x2 ", " ZOOM x4 " };
+        private static readonly string[] ZoomString = new string[3] { " ZOOM x1 ", " ZOOM x2 ", " ZOOM x3 "};
         private string currZoomString;
 
         // Text Rectangles We Base The Button Position On
@@ -51,14 +51,21 @@ namespace ProjectDelta.UI
 
         // Scroll Wheel
         private float scrollSpeed = 7f; // Adjust the scroll speed as needed
-
+        private int VirtualWidth;
+        private int VirtualHeight;
+        private int BackDropWidth = 280;
         public SettingsMenu(Screen _screen)
         {
-            int X = (_screen.VirtualWidth / 2) - (280 / 2);
-            BackDrop = new Rectangle(X, 0, 280, _screen.VirtualHeight + 170);
+            VirtualWidth = _screen.VirtualResolution.X;
+            VirtualHeight = _screen.VirtualResolution.Y;
+
+            int X = (VirtualWidth / 2) - (BackDropWidth / 2);
+
+            BackDrop = new Rectangle(X, 0, BackDropWidth, VirtualWidth + 170);
+
             currWindowString = WindowString[0];
             currUIScaleString = ScaleString[0];
-            currZoomString = ZoomString[1];
+            currZoomString = ZoomString[0];
             MeasureStrings();
 
             TextRectangles = new List<Rectangle>();
@@ -133,9 +140,9 @@ namespace ProjectDelta.UI
         {
             if (isOpen)
             {
-                _spriteBatch.DrawString(GameData.GameFont, currWindowString, new Vector2(WindowTextRectangle.X + (1 * GameData.UIScale), WindowTextRectangle.Y + (WindowSelectionTextSize.Y / 2)), Color.Black, 0.0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, 1f);
-                _spriteBatch.DrawString(GameData.GameFont, currUIScaleString, new Vector2(UITextRectangle.X + (1 * GameData.UIScale), UITextRectangle.Y + (UISelectionTextSize.Y / 2)), Color.Black, 0.0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, 1f);
-                _spriteBatch.DrawString(GameData.GameFont, currZoomString, new Vector2(ZoomTextRectangle.X + (1 * GameData.UIScale), ZoomTextRectangle.Y + (ZoomSelectionTextSize.Y / 2)), Color.Black, 0.0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, 1f);
+                _spriteBatch.DrawString(GameData.GameFont, currWindowString, new Vector2(WindowTextRectangle.X + (GameData.UIScale) + 1, WindowTextRectangle.Y + (4 * GameData.UIScale)), Color.Black, 0.0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, 1f);
+                _spriteBatch.DrawString(GameData.GameFont, currUIScaleString, new Vector2(UITextRectangle.X + (GameData.UIScale), UITextRectangle.Y + (4 * GameData.UIScale)), Color.Black, 0.0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, 1f);
+                _spriteBatch.DrawString(GameData.GameFont, currZoomString, new Vector2(ZoomTextRectangle.X + (GameData.UIScale), ZoomTextRectangle.Y + (4 * GameData.UIScale)), Color.Black, 0.0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, 1f);
 
                 if (GameData.IsDebug)
                 {
@@ -169,34 +176,30 @@ namespace ProjectDelta.UI
             {
                 _camera.Zoom *= new Vector2(2f);
 
-                if (_camera.Zoom.X == 0.5f)
+                if (_camera.Zoom.X == 1f)
                     currZoomString = ZoomString[0];
-                else if (_camera.Zoom.X == 1f)
-                    currZoomString = ZoomString[1];
                 else if (_camera.Zoom.X == 2f)
-                    currZoomString = ZoomString[2];
+                    currZoomString = ZoomString[1];
                 else if (_camera.Zoom.X == 4f)
-                    currZoomString = ZoomString[3];
-
+                    currZoomString = ZoomString[2];
                 CalculateButtons();
+                UpdateButtonForScroll();
             }
         }
 
         private void ZoomOutPress(Basic2DCamera _camera)
         {
-            if (_camera.Zoom.X > 0.75)
+            if (_camera.Zoom.X > 1)
                 _camera.Zoom /= new Vector2(2f);
 
-            if (_camera.Zoom.X == 0.5f)
+            if (_camera.Zoom.X == 1f)
                 currZoomString = ZoomString[0];
-            else if (_camera.Zoom.X == 1f)
-                currZoomString = ZoomString[1];
             else if (_camera.Zoom.X == 2f)
-                currZoomString = ZoomString[2];
+                currZoomString = ZoomString[1];
             else if (_camera.Zoom.X == 4f)
-                currZoomString = ZoomString[3];
-
+                currZoomString = ZoomString[2];
             CalculateButtons();
+            UpdateButtonForScroll();
         }
         #endregion
 
@@ -205,16 +208,14 @@ namespace ProjectDelta.UI
         {
             if (GameData.UIScale < 2.0f)
             {
-                GameData.UIScale += 0.5f;
+                GameData.UIScale += 1f;
 
-                if (GameData.UIScale == 1.0f)
+                if (GameData.UIScale == 1f)
                     currUIScaleString = ScaleString[0];
-                else if (GameData.UIScale == 1.5f)
+                else if (GameData.UIScale == 2f)
                     currUIScaleString = ScaleString[1];
-                else if (GameData.UIScale == 2.0f)
-                    currUIScaleString = ScaleString[2];
-
                 CalculateButtons();
+                UpdateButtonForScroll();
             }
         }
 
@@ -222,16 +223,14 @@ namespace ProjectDelta.UI
         {
             if (GameData.UIScale > 1.0f)
             {
-                GameData.UIScale -= 0.5f;
+                GameData.UIScale -= 1f;
 
-                if (GameData.UIScale == 1.0f)
+                if (GameData.UIScale == 1f)
                     currUIScaleString = ScaleString[0];
-                else if (GameData.UIScale == 1.5f)
+                else if (GameData.UIScale == 2f)
                     currUIScaleString = ScaleString[1];
-                else if (GameData.UIScale == 2.0f)
-                    currUIScaleString = ScaleString[2];
-
                 CalculateButtons();
+                UpdateButtonForScroll();
             }
         }
         #endregion
@@ -286,7 +285,7 @@ namespace ProjectDelta.UI
             //Otherwise The Location Is Based On Whatever Rect It's Relative To For My Needs
             //The Magic Number 320 Is Just The Virtual Width. If You See This Abomination,
             //I Gave Up On Making A Simpler Solution. Sorry
-            int Num1 = (320 / 2);
+            int Num1 = (VirtualWidth / 2);
 
             WindowTextRectangle.X = Num1 - ((int)WindowSelectionTextSize.X / 2);
             WindowTextRectangle.Y = 10 * (int)GameData.UIScale;
@@ -294,12 +293,12 @@ namespace ProjectDelta.UI
             WindowTextRectangle.Height = (int)WindowSelectionTextSize.Y * 2;
 
             UITextRectangle.X = Num1 - ((int)UISelectionTextSize.X / 2);
-            UITextRectangle.Y = WindowTextRectangle.Bottom + (10 * (int)GameData.UIScale);
+            UITextRectangle.Y = (int)WindowTextRectangle.Bottom + (10 * (int)GameData.UIScale);
             UITextRectangle.Width = (int)UISelectionTextSize.X;
             UITextRectangle.Height = (int)UISelectionTextSize.Y * 2;
 
             ZoomTextRectangle.X = Num1 - ((int)ZoomSelectionTextSize.X / 2);
-            ZoomTextRectangle.Y = UITextRectangle.Bottom + (10 * (int)GameData.UIScale);
+            ZoomTextRectangle.Y = (int)UITextRectangle.Bottom + (10 * (int)GameData.UIScale);
             ZoomTextRectangle.Width = (int)ZoomSelectionTextSize.X;
             ZoomTextRectangle.Height = (int)ZoomSelectionTextSize.Y * 2;
 

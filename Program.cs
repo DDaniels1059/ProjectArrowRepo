@@ -1,3 +1,3 @@
 ﻿
-using var game = new ProjectDelta.Game1();
+using var game = new ProjectArrow.Game1();
 game.Run();

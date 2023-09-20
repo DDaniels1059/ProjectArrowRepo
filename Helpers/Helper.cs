@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ProjectDelta.Helpers
+namespace ProjectArrow.Helpers
 {
     public static class Helper
     {

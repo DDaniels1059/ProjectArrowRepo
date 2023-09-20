@@ -1,12 +1,12 @@
 ﻿using Microsoft.Xna.Framework;
-using ProjectDelta.Helpers;
+using ProjectArrow.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ProjectDelta.Objects
+namespace ProjectArrow.Objects
 {
     public class PowerLine
     {

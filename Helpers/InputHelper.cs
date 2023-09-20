@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ProjectDelta.Helpers
+namespace ProjectArrow.Helpers
 {
     public class InputHelper
     {
@@ -35,7 +35,7 @@ namespace ProjectDelta.Helpers
 
         public enum MouseButtons { LeftButton, RightButton }
 
-        public void Update(Screen _screen, Basic2DCamera _camera)
+        public void Update(Basic2DCamera _camera, Screen _screen)
         {
             lastKeyboardState = currentKeyboardState;
             lastMouseState = currentMouseState;
@@ -51,7 +51,7 @@ namespace ProjectDelta.Helpers
             ScrollWheelValue = (int)(currentMouseState.ScrollWheelValue);
 
             // Transform Mouse Position to Our Virtual 320x180 Resolution
-            virtualMousePosition = ConvertScreenToVirtualResolution(_screen, cursorPos);
+            virtualMousePosition = ConvertScreenToVirtualResolution(cursorPos, _screen);
             // Transform Mouse Position to World Space
             worldMousePosition = _camera.ScreenToCamera(VirtualMousePosition);
         }
@@ -66,18 +66,18 @@ namespace ProjectDelta.Helpers
             return ScrollWheelValue < previousScrollWheelValue;
         }
 
-        public static Vector2 ConvertScreenToVirtualResolution(Screen _screen, Vector2 mousePosition)
+        public static Vector2 ConvertScreenToVirtualResolution(Vector2 mousePosition, Screen _screen)
         {
             // Calculate the position within the viewport
             Vector2 viewportPosition = new(
-                (mousePosition.X - _screen.Viewport.X) / _screen.Viewport.Width,
+               (mousePosition.X - _screen.Viewport.X) / _screen.Viewport.Width,
                 (mousePosition.Y - _screen.Viewport.Y) / _screen.Viewport.Height
             );
 
-            // Convert to the virtual resolution coords
+            //Convert to the virtual resolution coords
             Vector2 virtualResolutionPosition = new(
-                viewportPosition.X * _screen.VirtualWidth,
-                viewportPosition.Y * _screen.VirtualHeight
+                viewportPosition.X * _screen.VirtualResolution.X,
+                viewportPosition.Y * _screen.VirtualResolution.Y
             );
 
             return virtualResolutionPosition;

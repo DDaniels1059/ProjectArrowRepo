@@ -3,10 +3,10 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
 using Microsoft.Xna.Framework;
-using ProjectDelta.Helpers;
-using ProjectDelta.Objects;
+using ProjectArrow.Helpers;
+using ProjectArrow.Objects;
 
-namespace ProjectDelta
+namespace ProjectArrow
 {
     class Player
     {
@@ -17,7 +17,7 @@ namespace ProjectDelta
         private Vector2 _position;
         private Vector2 _lastPosition;
         private Vector2 _origin;
-        private int _speed = 100;
+        private int _speed = 90;
         private float _depth;
         private bool _isMoving = false;
 
@@ -26,7 +26,7 @@ namespace ProjectDelta
         public Vector2 Position { get { return _position; } private set { _position = value; } }
         public Rectangle PlayerCollisionBox { get { return _collider; } }
 
-        public void LoadData()
+        public Player()
         {
             _animations[0] = new SpriteAnimation(GameData.PlayerAtlas, GameData.PlayerMap, "PlayerDown", 4, 6);
             _animations[1] = new SpriteAnimation(GameData.PlayerAtlas, GameData.PlayerMap, "PlayerUp", 4, 6);
@@ -36,7 +36,6 @@ namespace ProjectDelta
             _position = new Vector2(300, 300);
         }
 
-        //This Gets Called In Game1 Update
         public void Update(GameTime gameTime, float deltaTime, InputHelper inputHelper)
         {   
             _isMoving = false;

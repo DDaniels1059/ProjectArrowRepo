@@ -2,7 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 
-namespace ProjectDelta.Helpers
+namespace ProjectArrow.Helpers
 {
     public class SpriteManager
     {

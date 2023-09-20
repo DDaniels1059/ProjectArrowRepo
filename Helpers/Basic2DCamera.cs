@@ -2,7 +2,7 @@ using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace ProjectDelta.Helpers;
+namespace ProjectArrow;
 
 public sealed class Basic2DCamera
 {

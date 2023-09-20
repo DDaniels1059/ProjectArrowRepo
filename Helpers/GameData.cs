@@ -1,12 +1,12 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-using ProjectDelta.Objects;
-using ProjectDelta.UI;
+using ProjectArrow.Objects;
+using ProjectArrow.UI;
 using System;
 using System.Collections.Generic;
 
-namespace ProjectDelta.Helpers
+namespace ProjectArrow.Helpers
 {
     public static class GameData
     {
@@ -41,14 +41,15 @@ namespace ProjectDelta.Helpers
             TextureAtlas = content.Load<Texture2D>("Misc/TextureAtlas");
             TextureMap = new Dictionary<string, Rectangle>
             {                            //X  Y  Width     Height
-                ["Wrench"] = new Rectangle(0, 0, TileSize, TileSize),
-                ["Wheel"] = new Rectangle(16, 0, TileSize, TileSize),
+                ["DebugButton"] = new Rectangle(0, 0, TileSize, TileSize),
+                ["DebugButtonPressed"] = new Rectangle(16, 0, TileSize, TileSize),
                 ["LeftArrow"] = new Rectangle(32, 0, TileSize, TileSize),
                 ["LeftArrowPressed"] = new Rectangle(48, 0, TileSize, TileSize),
                 ["Tower"] = new Rectangle(64, 0, TileSize, TileSize * 3),
-                ["Battery"] = new Rectangle(80, 0, TileSize, TileSize),
-                ["DebugButton"] = new Rectangle(16, 16, TileSize, TileSize),
-                ["DebugButtonPressed"] = new Rectangle(32, 16, TileSize, TileSize)
+                ["PinkDebug"] = new Rectangle(0, 16, TileSize, TileSize),
+                ["Battery"] = new Rectangle(16, 16, TileSize, TileSize),
+                ["Wrench"] = new Rectangle(32, 16, TileSize, TileSize),
+                ["Gear"] = new Rectangle(48, 16, TileSize, TileSize)
             };
 
             PlayerAtlas = content.Load<Texture2D>("Misc/PlayerAtlas");

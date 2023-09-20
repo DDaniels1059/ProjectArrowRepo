@@ -1,16 +1,16 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using ProjectDelta.Helpers;
-using ProjectDelta.Objects;
-using ProjectDelta.UI;
+using ProjectArrow.Helpers;
+using ProjectArrow.Objects;
+using ProjectArrow.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using static ProjectDelta.Helpers.InputHelper;
+using static ProjectArrow.Helpers.InputHelper;
 
-namespace ProjectDelta
+namespace ProjectArrow
 {
     public class Game1 : Game
     {
@@ -20,19 +20,11 @@ namespace ProjectDelta
         private bool Active = true;
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
-        private Player _player;
         private Screen _screen;
         private Basic2DCamera _camera;
         private InputHelper _inputHelper;
         private SettingsMenu _settingsMenu;
-
-        private bool isFirstClick = true;
-
-
-        Vector2 firstpoint;
-        Vector2 lastpoint;
-        Tower firsttower;
-        Tower lasttower;
+        private Player _player;
 
         public Game1()
         {
@@ -43,8 +35,8 @@ namespace ProjectDelta
 
         protected override void Initialize()
         {
-            _screen = new Screen(_graphics, GraphicsDevice, Window);
-            _camera = new(_screen.VirtualWidth, _screen.VirtualHeight);
+            _screen = new Screen(_graphics, GraphicsDevice, Window, new Point(320, 180));
+            _camera = new(_screen.VirtualResolution.X, _screen.VirtualResolution.Y);
             base.Initialize();
         }
 
@@ -55,28 +47,16 @@ namespace ProjectDelta
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             _inputHelper = new InputHelper();
             _settingsMenu = new SettingsMenu(_screen);
-
-            _player = new Player(); 
-            _player.LoadData();
-
-
-
             _settingsMenu.AssignButtonFunctions(_camera, _screen);
+            _player = new Player();
         }
-
         protected override void Update(GameTime gameTime)
         {
-            if(this.IsActive)
+            if (this.IsActive)
             {
                 Active = true;
-                _inputHelper.Update(_screen, _camera);
+                _inputHelper.Update(_camera, _screen);
                 float deltatime = (float)gameTime.ElapsedGameTime.TotalSeconds;
-
-
-                #region Main Input
-
-                // Exit();
-                #endregion
 
                 if (_inputHelper.IsKeyPress(Keys.C))
                 {
@@ -113,65 +93,20 @@ namespace ProjectDelta
                     }
 
 
-
-                    #region PowerLines
-
-                    // Create Power Line Pair
-                    if (_inputHelper.IsKeyPress(Keys.Z))
-                    {
-                        if (isFirstClick)
-                        {
-                            //Create First Tower
-                            firstpoint = new Vector2((int)_inputHelper.WorldMousePosition.X, (int)_inputHelper.WorldMousePosition.Y);
-                            firsttower = new Tower(_inputHelper);
-                            GameData.GameObjects.Add(firsttower);
-                            isFirstClick = false;
-                        }
-                        else
-                        {
-                            //Create Last Tower
-                            lastpoint = new Vector2((int)_inputHelper.WorldMousePosition.X, (int)_inputHelper.WorldMousePosition.Y);
-                            lasttower = new Tower(_inputHelper);
-                            GameData.GameObjects.Add(lasttower);
-
-                            // Create the power line and associate it with the towers.
-                            PowerLine powerLine = new(firsttower, lasttower);
-                            GameData.PowerLines.Add(powerLine);
-                            powerLine.CreateLine();
-                            isFirstClick = true;
-                        }
-                    }
-
-                    // Remove Power Line Pair
-                    if (_inputHelper.IsMouseButtonPress(MouseButtons.RightButton))
-                    {
-                        if (GameData.PowerLines.Count > 0)
-                        {
-                            // Get the first power line. (TEMP)
-                            // We Remove Both Towers ATM.
-                            PowerLine firstPowerLine = GameData.PowerLines[0];
-                            firstPowerLine.RemoveTower(firsttower);
-                            firstPowerLine.RemoveTower(lasttower);
-                        }
-                    }
-
-                    #endregion
-
-                    //Ensure camera is centered on player
                     _player.Update(gameTime, deltatime, _inputHelper);
 
                 }
 
-
-                _camera.Position = new Vector2(_player.Position.X + 8, _player.Position.Y + 8);
-                _camera.CenterOrigin();
-                _settingsMenu.Update(_inputHelper);
 
                 for (int i = 0; i < GameData.ButtonList.Count; i++)
                 {
                     Button button = GameData.ButtonList[i];
                     button.Update(_inputHelper.VirtualMousePosition, _inputHelper, deltatime);
                 }
+
+                _camera.Position = new Vector2(_player.Position.X + 8, _player.Position.Y + 8);
+                _camera.CenterOrigin();
+                _settingsMenu.Update(_inputHelper);
 
                 base.Update(gameTime);
             }
@@ -184,14 +119,10 @@ namespace ProjectDelta
         protected override void Draw(GameTime gameTime)
         {
 
-            GraphicsDevice.Viewport = _screen.Viewport;
-            GraphicsDevice.Clear(Color.Black);
-
-            #region World Draw
-
-            _spriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.AlphaBlend, SamplerState.PointClamp, null, null, null, transformMatrix: _camera.TransformationMatrix * _screen.ScreenScaleMatrix);      
-
+            _screen.TargetBeginDraw();
             //Background
+            _spriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.AlphaBlend, SamplerState.PointClamp, null, null, null, transformMatrix: _camera.TransformationMatrix);
+
             _spriteBatch.Draw(GameData.Pixel, new Rectangle(0, 0, 800, 800), null, Color.SlateGray, 0f, Vector2.Zero, SpriteEffects.None, 0f);
 
             //GameObjects
@@ -207,30 +138,11 @@ namespace ProjectDelta
                     _spriteBatch.DrawHollowRect(gameObject.collider, Color.Red);
                 }
             }
-
-            //Power Lines
-            for (int i = 0; i < GameData.PowerLines.Count; i++)
-            {
-                PowerLine PowerLine = GameData.PowerLines[i];
-                Vector2[] LineVerts = PowerLine.LineVertices;
-
-                for (int j = 0; j < LineVerts.Length - 1; j++)
-                {
-                    _spriteBatch.Draw(GameData.Pixel, LineVerts[j], null, Color.Black, 0f, Vector2.Zero, 2.5f, SpriteEffects.None, 1f);
-                }
-            }
-
-            //Player
             _player.Draw(_spriteBatch);
 
             _spriteBatch.End();
 
-            #endregion
-
-            #region UI / HUD
-            // Draw UI elements (buttons and text)
-            _spriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.AlphaBlend, SamplerState.PointClamp, null, null, null, transformMatrix: _screen.ScreenScaleMatrix);
-
+            _spriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.AlphaBlend, SamplerState.PointClamp);
 
             _settingsMenu.Draw(_spriteBatch);
 
@@ -239,10 +151,10 @@ namespace ProjectDelta
                 _spriteBatch.DrawString(GameData.GameFont, "WorldMousePos: " + ((int)_inputHelper.WorldMousePosition.X).ToString() + " " + ((int)_inputHelper.WorldMousePosition.Y).ToString(), new Vector2((int)5, (int)5), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, .98f);
                 _spriteBatch.DrawString(GameData.GameFont, "VirtualMousePos: " + ((int)_inputHelper.VirtualMousePosition.X).ToString() + " " + ((int)_inputHelper.VirtualMousePosition.Y).ToString(), new Vector2((int)5, (int)15), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, .98f);
             }
-            
+
 
             string textToCenter = "Paused";
-            float textSize = (int)GameData.GameFont.MeasureString(textToCenter).X * 2;
+            float textSize = (int)GameData.GameFont.MeasureString(textToCenter).X * 4;
 
             for (int i = 0; i < GameData.ButtonList.Count; i++)
             {
@@ -252,13 +164,16 @@ namespace ProjectDelta
 
             // Pause Text
             if (!Active)
-                _spriteBatch.DrawString(GameData.GameFont, textToCenter, new Vector2((int)(_screen.VirtualWidth / 2) - (textSize / 2) + 1, (int)_screen.VirtualHeight - 30), Color.Black, 0f, Vector2.Zero, 2f, SpriteEffects.None, 1f);
+                _spriteBatch.DrawString(GameData.GameFont, textToCenter, new Vector2((int)(_screen.VirtualResolution.X / 2) - (textSize / 2) + 1, (int)_screen.VirtualResolution.Y - 40), Color.Black, 0f, Vector2.Zero, 4f, SpriteEffects.None, 1f);
+
+            Window.Title = "ProjectArrow" + " " + (GC.GetTotalMemory(false) / 1048576f).ToString("F") + " MB";
+
 
             _spriteBatch.End();
 
-            #endregion
-
+            _screen.TargetEndDraw(_spriteBatch);
             base.Draw(gameTime);
         }
+
     }
 }

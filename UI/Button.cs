@@ -1,14 +1,14 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using ProjectDelta.Helpers;
+using ProjectArrow.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using static ProjectDelta.Helpers.InputHelper;
+using static ProjectArrow.Helpers.InputHelper;
 
-namespace ProjectDelta.UI
+namespace ProjectArrow.UI
 {
     public class Button
     {
@@ -99,7 +99,7 @@ namespace ProjectDelta.UI
                     _offset.X = _defaultSprite.Width - _scaledWidth;
                 }
 
-                _offset.Y = _defaultSprite.Width - _scaledWidth - 1;
+                _offset.Y = _defaultSprite.Width - _scaledWidth - 2;
 
 
 
@@ -130,8 +130,8 @@ namespace ProjectDelta.UI
                 //This Scales Up The Button Bounds, Used For Input Detection
                 bounds.X = (int)position.X + (int)_offset.X;
                 bounds.Y = (int)position.Y + (int)_offset.Y;
-                bounds.Width = _scaledWidth;
-                bounds.Height = _scaledHeight;
+                bounds.Width = (int)_scaledWidth;
+                bounds.Height = (int)_scaledHeight;
 
                 if (bounds.Contains(VirtualMousePositon) && InputHelper.IsMouseButtonPress(MouseButtons.LeftButton))
                 {

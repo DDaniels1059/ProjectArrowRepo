@@ -1,68 +1,39 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Runtime;
 
-namespace ProjectDelta.Helpers
+namespace ProjectArrow.Helpers
 {
     public class Screen
     {
         public static bool IsResizing { get; private set; }
-        public int VirtualWidth { get; private set; }
-        public int VirtualHeight { get; private set; }
+        public Point VirtualResolution { get; private set; }
         public int ViewWidth { get; private set; }
         public int ViewHeight { get; private set; }
-
-        private int _viewPadding;  //  View padding, amount to apply for letter/pillar boxing
-
-        public int ViewPadding
-        {
-            get => _viewPadding;
-            set
-            {
-                //  Only perform view update if the value is changed
-                if (_viewPadding != value)
-                {
-                    _viewPadding = value;
-                    UpdateView();
-                }
-            }
-        }
-
-
         public bool IsFullscreen { get; private set; }
 
-
-        //  Screen scale matrix
-        public Matrix ScreenScaleMatrix { get; private set; }
-
-        //  Screen Viewport
         public Viewport Viewport { get; private set; }
 
         private GraphicsDeviceManager _graphics;
         private GraphicsDevice _graphicsDevice;
         private GameWindow _window;
 
-        public Screen(GraphicsDeviceManager _graphics, GraphicsDevice GraphicsDevice, GameWindow Window)
+        private RenderTarget2D _renderTarget;
+        private Rectangle _renderTargetDestination;
+
+        public Screen(GraphicsDeviceManager _graphics, GraphicsDevice GraphicsDevice, GameWindow Window, Point VirtualResolution)
         {
             IsFullscreen = false;
 
             this._graphics = _graphics;
             this._window = Window;
             this._graphicsDevice = GraphicsDevice;
-
-            Window.AllowUserResizing = true;
-
-            VirtualWidth = 320;
-            VirtualHeight = 180;
+            this.VirtualResolution = VirtualResolution;
 
             _graphics.DeviceCreated += OnGraphicsDeviceCreated;
             _graphics.DeviceReset += OnGraphicsDeviceReset;
             Window.ClientSizeChanged += OnWindowSizeChanged;
+            Window.AllowUserResizing = true;
 
 
             _graphics.PreferredBackBufferWidth = 1280;
@@ -70,7 +41,7 @@ namespace ProjectDelta.Helpers
             _graphics.IsFullScreen = false;
             _graphics.ApplyChanges();
 
-
+            _renderTarget = new RenderTarget2D(_graphicsDevice, VirtualResolution.X, VirtualResolution.Y);
             UpdateView();
         }
 
@@ -91,7 +62,6 @@ namespace ProjectDelta.Helpers
             if (_window.ClientBounds.Width > 0 && _window.ClientBounds.Height > 0 && !IsResizing)
             {
                 IsResizing = true;
-                _viewPadding = 0;
                 _graphics.PreferredBackBufferWidth = _window.ClientBounds.Width;
                 _graphics.PreferredBackBufferHeight = _window.ClientBounds.Height;
                 UpdateView();
@@ -102,29 +72,21 @@ namespace ProjectDelta.Helpers
         public void SetFullscreen()
         {
             IsFullscreen = true;
-            IsResizing = true;
-            ViewPadding = _viewPadding;
             _graphics.PreferredBackBufferWidth = _graphics.GraphicsDevice.Adapter.CurrentDisplayMode.Width;
             _graphics.PreferredBackBufferHeight = _graphics.GraphicsDevice.Adapter.CurrentDisplayMode.Height;
             _graphics.HardwareModeSwitch = true;
             _graphics.IsFullScreen = true;
             _graphics.ApplyChanges();
-            Console.WriteLine("FULLSCREEN");
-            IsResizing = false;
         }
 
         public void SetBorderless()
         {
             IsFullscreen = true;
-            IsResizing = true;
-            ViewPadding = _viewPadding;
             _graphics.PreferredBackBufferWidth = _graphics.GraphicsDevice.Adapter.CurrentDisplayMode.Width;
             _graphics.PreferredBackBufferHeight = _graphics.GraphicsDevice.Adapter.CurrentDisplayMode.Height;
             _graphics.IsFullScreen = true;
             _graphics.HardwareModeSwitch = false;
             _graphics.ApplyChanges();
-            Console.WriteLine("FULLSCREEN");
-            IsResizing = false;
         }
 
         public void SetWindowed(int width, int height)
@@ -132,55 +94,90 @@ namespace ProjectDelta.Helpers
             if (width > 0 && height > 0)
             {
                 IsFullscreen = false;
-                IsResizing = true;
                 _graphics.PreferredBackBufferWidth = width;
                 _graphics.PreferredBackBufferHeight = height;
                 _graphics.IsFullScreen = false;
                 _graphics.ApplyChanges();
-                Console.WriteLine("WINDOW-" + width + "x" + height);
-                IsResizing = false;
             }
         }
 
-        private void UpdateView()
+        public void UpdateView()
         {
             float ScreenWidth = _graphicsDevice.PresentationParameters.BackBufferWidth;
             float screenHeight = _graphicsDevice.PresentationParameters.BackBufferHeight;
 
-            // get View Size
-            if (ScreenWidth / (float)VirtualWidth > screenHeight / (float)VirtualHeight)
+            if (ScreenWidth / VirtualResolution.X > screenHeight / VirtualResolution.Y)
             {
-                ViewWidth = (int)(screenHeight / (float)VirtualHeight * (float)VirtualWidth);
+                ViewWidth = (int)(screenHeight / VirtualResolution.Y * VirtualResolution.X);
                 ViewHeight = (int)screenHeight;
             }
             else
             {
                 ViewWidth = (int)ScreenWidth;
-                ViewHeight = (int)(ScreenWidth / (float)VirtualWidth * (float)VirtualHeight);
+                ViewHeight = (int)(ScreenWidth / VirtualResolution.X * VirtualResolution.Y);
             }
 
-            // apply View Padding
-            float Aspect = (float)ViewHeight / (float)ViewWidth;
-            ViewWidth -= ViewPadding * 2;
-            ViewHeight -= (int)(Aspect * (float)ViewPadding * 2f);
+            _renderTargetDestination = new Rectangle
+           (
+              (int)(ScreenWidth / 2f - (ViewWidth / 2)), 
+              (int)(screenHeight / 2f - (ViewHeight / 2)), 
+              ViewWidth, 
+              ViewHeight
+           );
 
+            Viewport = new Viewport(_renderTargetDestination);
+        }
 
-            // update screen matrix
-            var XScale = (float)ViewWidth / (float)VirtualWidth;
-            var YScale = (float)ViewHeight / (float)VirtualHeight;
+        public void TargetBeginDraw()
+        {
+            _graphicsDevice.SetRenderTarget(_renderTarget);
+            _graphicsDevice.Clear(Color.Black);
+        }
 
-            ScreenScaleMatrix = Matrix.CreateScale((float)XScale, (float)YScale, 1);
+        public void TargetEndDraw(SpriteBatch _spriteBatch)
+        {
+            _graphicsDevice.SetRenderTarget(null);
+            _graphicsDevice.Clear(Color.Black);
 
-            // update viewport
-            Viewport = new Viewport
-            {
-                X = (int)(ScreenWidth / 2f - (float)(ViewWidth / 2)),
-                Y = (int)(screenHeight / 2f - (float)(ViewHeight / 2)),
-                Width = ViewWidth,
-                Height = ViewHeight,
-                MinDepth = 0f,
-                MaxDepth = 1f,
-            };
+            _spriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.AlphaBlend, SamplerState.PointClamp);
+            _spriteBatch.Draw(_renderTarget, _renderTargetDestination, Color.White);
+            _spriteBatch.End();
+        }
+
+        private void UpdateView2()
+        {
+            //float ScreenWidth = _graphicsDevice.PresentationParameters.BackBufferWidth;
+            //float screenHeight = _graphicsDevice.PresentationParameters.BackBufferHeight;
+
+            //// get View Size
+            //if (ScreenWidth / VirtualWidth > screenHeight / VirtualHeight)
+            //{
+            //    ViewWidth = (int)(screenHeight / VirtualHeight * VirtualWidth);
+            //    ViewHeight = (int)screenHeight;
+            //}
+            //else
+            //{
+            //    ViewWidth = (int)ScreenWidth;
+            //    ViewHeight = (int)(ScreenWidth / VirtualWidth * VirtualHeight);
+            //}
+
+            //// apply View Padding
+            //var Aspect = ViewHeight / ViewWidth;
+            //ViewWidth -= ViewPadding * 2;
+            //ViewHeight -= (int)(Aspect * ViewPadding * 2f);
+
+            //ScreenScaleMatrix = Matrix.CreateScale(ViewWidth / (float)VirtualWidth, ViewWidth / (float)VirtualWidth, 1);
+
+            //// update viewport
+            //Viewport = new Viewport
+            //{
+            //    X = (int)(ScreenWidth / 2f - (ViewWidth / 2)),
+            //    Y = (int)(screenHeight / 2f - (ViewHeight / 2)),
+            //    Width = ViewWidth,
+            //    Height = ViewHeight,
+            //    MinDepth = 0f,
+            //    MaxDepth = 1f,
+            //};
         }
     }
 }
