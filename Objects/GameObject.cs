@@ -17,6 +17,8 @@ namespace ProjectArrow.Objects
         public Vector2 origin;
         public float depth;
 
+
+
         public virtual void Update(GameTime gameTime)
         {
             //Vector2 origin = new Vector2(position.X + (GameData.TileSize / 2), position.Y + (GameData.TileSize - 2));

@@ -17,7 +17,7 @@ namespace ProjectArrow
         private Vector2 _position;
         private Vector2 _lastPosition;
         private Vector2 _origin;
-        private int _speed = 90;
+        private int _speed = 105;
         private float _depth;
         private bool _isMoving = false;
 

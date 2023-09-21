@@ -1,47 +1,49 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using System;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace ProjectArrow.Helpers
 {
     public class Screen
     {
         public static bool IsResizing { get; private set; }
-        public Point VirtualResolution { get; private set; }
+        public int GameWidth { get; private set; }
+        public int GameHeight { get; private set; }
         public int ViewWidth { get; private set; }
         public int ViewHeight { get; private set; }
         public bool IsFullscreen { get; private set; }
-
         public Viewport Viewport { get; private set; }
 
         private GraphicsDeviceManager _graphics;
         private GraphicsDevice _graphicsDevice;
         private GameWindow _window;
 
-        private RenderTarget2D _renderTarget;
+        private RenderTarget2D _mainRenderTarget;
         private Rectangle _renderTargetDestination;
 
-        public Screen(GraphicsDeviceManager _graphics, GraphicsDevice GraphicsDevice, GameWindow Window, Point VirtualResolution)
+        public Screen(GraphicsDeviceManager _graphics, GraphicsDevice GraphicsDevice, GameWindow Window, int GameWidth, int GameHeight)
         {
             IsFullscreen = false;
 
             this._graphics = _graphics;
             this._window = Window;
             this._graphicsDevice = GraphicsDevice;
-            this.VirtualResolution = VirtualResolution;
+            this.GameWidth = GameWidth;
+            this.GameHeight = GameHeight;
 
             _graphics.DeviceCreated += OnGraphicsDeviceCreated;
             _graphics.DeviceReset += OnGraphicsDeviceReset;
             Window.ClientSizeChanged += OnWindowSizeChanged;
             Window.AllowUserResizing = true;
 
-
+            _graphics.SynchronizeWithVerticalRetrace = true;
             _graphics.PreferredBackBufferWidth = 1280;
             _graphics.PreferredBackBufferHeight = 720;
             _graphics.IsFullScreen = false;
             _graphics.ApplyChanges();
 
-            _renderTarget = new RenderTarget2D(_graphicsDevice, VirtualResolution.X, VirtualResolution.Y);
+            _mainRenderTarget = new RenderTarget2D(_graphicsDevice, GameWidth, GameHeight);
             UpdateView();
         }
 
@@ -106,78 +108,40 @@ namespace ProjectArrow.Helpers
             float ScreenWidth = _graphicsDevice.PresentationParameters.BackBufferWidth;
             float screenHeight = _graphicsDevice.PresentationParameters.BackBufferHeight;
 
-            if (ScreenWidth / VirtualResolution.X > screenHeight / VirtualResolution.Y)
+            if (ScreenWidth / GameWidth > screenHeight / GameHeight)
             {
-                ViewWidth = (int)(screenHeight / VirtualResolution.Y * VirtualResolution.X);
+                ViewWidth = (int)(screenHeight / GameHeight * GameWidth);
                 ViewHeight = (int)screenHeight;
             }
             else
             {
                 ViewWidth = (int)ScreenWidth;
-                ViewHeight = (int)(ScreenWidth / VirtualResolution.X * VirtualResolution.Y);
+                ViewHeight = (int)(ScreenWidth / GameWidth * GameHeight);
             }
 
             _renderTargetDestination = new Rectangle
-           (
-              (int)(ScreenWidth / 2f - (ViewWidth / 2)), 
-              (int)(screenHeight / 2f - (ViewHeight / 2)), 
-              ViewWidth, 
-              ViewHeight
-           );
+            (
+                (int)(ScreenWidth / 2f - (ViewWidth / 2)),
+                (int)(screenHeight / 2f - (ViewHeight / 2)),
+                (int)ViewWidth,
+                (int)ViewHeight
+            );
 
             Viewport = new Viewport(_renderTargetDestination);
         }
 
         public void TargetBeginDraw()
         {
-            _graphicsDevice.SetRenderTarget(_renderTarget);
+            _graphicsDevice.SetRenderTarget(_mainRenderTarget);
             _graphicsDevice.Clear(Color.Black);
         }
 
         public void TargetEndDraw(SpriteBatch _spriteBatch)
         {
             _graphicsDevice.SetRenderTarget(null);
-            _graphicsDevice.Clear(Color.Black);
-
             _spriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.AlphaBlend, SamplerState.PointClamp);
-            _spriteBatch.Draw(_renderTarget, _renderTargetDestination, Color.White);
+            _spriteBatch.Draw(_mainRenderTarget, _renderTargetDestination, Color.White);
             _spriteBatch.End();
-        }
-
-        private void UpdateView2()
-        {
-            //float ScreenWidth = _graphicsDevice.PresentationParameters.BackBufferWidth;
-            //float screenHeight = _graphicsDevice.PresentationParameters.BackBufferHeight;
-
-            //// get View Size
-            //if (ScreenWidth / VirtualWidth > screenHeight / VirtualHeight)
-            //{
-            //    ViewWidth = (int)(screenHeight / VirtualHeight * VirtualWidth);
-            //    ViewHeight = (int)screenHeight;
-            //}
-            //else
-            //{
-            //    ViewWidth = (int)ScreenWidth;
-            //    ViewHeight = (int)(ScreenWidth / VirtualWidth * VirtualHeight);
-            //}
-
-            //// apply View Padding
-            //var Aspect = ViewHeight / ViewWidth;
-            //ViewWidth -= ViewPadding * 2;
-            //ViewHeight -= (int)(Aspect * ViewPadding * 2f);
-
-            //ScreenScaleMatrix = Matrix.CreateScale(ViewWidth / (float)VirtualWidth, ViewWidth / (float)VirtualWidth, 1);
-
-            //// update viewport
-            //Viewport = new Viewport
-            //{
-            //    X = (int)(ScreenWidth / 2f - (ViewWidth / 2)),
-            //    Y = (int)(screenHeight / 2f - (ViewHeight / 2)),
-            //    Width = ViewWidth,
-            //    Height = ViewHeight,
-            //    MinDepth = 0f,
-            //    MaxDepth = 1f,
-            //};
-        }
+        }      
     }
 }

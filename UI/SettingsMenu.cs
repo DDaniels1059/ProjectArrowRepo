@@ -56,8 +56,8 @@ namespace ProjectArrow.UI
         private int BackDropWidth = 280;
         public SettingsMenu(Screen _screen)
         {
-            VirtualWidth = _screen.VirtualResolution.X;
-            VirtualHeight = _screen.VirtualResolution.Y;
+            VirtualWidth = _screen.GameWidth;
+            VirtualHeight = _screen.GameHeight;
 
             int X = (VirtualWidth / 2) - (BackDropWidth / 2);
 

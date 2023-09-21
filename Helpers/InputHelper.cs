@@ -76,8 +76,8 @@ namespace ProjectArrow.Helpers
 
             //Convert to the virtual resolution coords
             Vector2 virtualResolutionPosition = new(
-                viewportPosition.X * _screen.VirtualResolution.X,
-                viewportPosition.Y * _screen.VirtualResolution.Y
+                viewportPosition.X * _screen.GameWidth,
+                viewportPosition.Y * _screen.GameHeight
             );
 
             return virtualResolutionPosition;

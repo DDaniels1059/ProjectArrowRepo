@@ -26,7 +26,7 @@ namespace ProjectArrow.Helpers
         public static bool IsPaused { get; set; }
 
         public static List<Button> ButtonList { get; set; }
-        public static List<GameObject> GameObjects { get; set; }
+        public static List<Objects.GameObject> GameObjects { get; set; }
         public static List<PowerLine> PowerLines { get; set; }
 
         public static void LoadData(ContentManager content, GraphicsDevice graphicsDevice)
@@ -45,7 +45,7 @@ namespace ProjectArrow.Helpers
                 ["DebugButtonPressed"] = new Rectangle(16, 0, TileSize, TileSize),
                 ["LeftArrow"] = new Rectangle(32, 0, TileSize, TileSize),
                 ["LeftArrowPressed"] = new Rectangle(48, 0, TileSize, TileSize),
-                ["Tower"] = new Rectangle(64, 0, TileSize, TileSize * 3),
+                ["Tower"] = new Rectangle(0, 32, TileSize, TileSize * 3),
                 ["PinkDebug"] = new Rectangle(0, 16, TileSize, TileSize),
                 ["Battery"] = new Rectangle(16, 16, TileSize, TileSize),
                 ["Wrench"] = new Rectangle(32, 16, TileSize, TileSize),
@@ -67,7 +67,7 @@ namespace ProjectArrow.Helpers
 
             PowerLines = new List<PowerLine>();
             ButtonList = new List<Button>();
-            GameObjects = new List<GameObject>();
+            GameObjects = new List<Objects.GameObject>();
         }
     }
 }
