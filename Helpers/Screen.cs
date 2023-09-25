@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework;
 using System;
 using static System.Formats.Asn1.AsnWriter;
+using System.Linq;
 
 namespace ProjectArrow.Helpers
 {
@@ -10,8 +11,8 @@ namespace ProjectArrow.Helpers
         public static bool IsResizing { get; private set; }
         public int GameWidth { get; private set; }
         public int GameHeight { get; private set; }
-        public int ViewWidth { get; private set; }
-        public int ViewHeight { get; private set; }
+        public float ViewWidth { get; private set; }
+        public float ViewHeight { get; private set; }
         public bool IsFullscreen { get; private set; }
         public Viewport Viewport { get; private set; }
 
@@ -20,7 +21,9 @@ namespace ProjectArrow.Helpers
         private GameWindow _window;
 
         private RenderTarget2D _mainRenderTarget;
-        private Rectangle _renderTargetDestination;
+        public Rectangle _renderTargetDestination;
+        public float scale { get; private set; }
+        private bool isScalingAllowed;
 
         public Screen(GraphicsDeviceManager _graphics, GraphicsDevice GraphicsDevice, GameWindow Window, int GameWidth, int GameHeight)
         {
@@ -32,10 +35,12 @@ namespace ProjectArrow.Helpers
             this.GameWidth = GameWidth;
             this.GameHeight = GameHeight;
 
+            isScalingAllowed = true;
+
             _graphics.DeviceCreated += OnGraphicsDeviceCreated;
             _graphics.DeviceReset += OnGraphicsDeviceReset;
             Window.ClientSizeChanged += OnWindowSizeChanged;
-            Window.AllowUserResizing = true;
+            Window.AllowUserResizing = false;
 
             _graphics.SynchronizeWithVerticalRetrace = true;
             _graphics.PreferredBackBufferWidth = 1280;
@@ -44,28 +49,30 @@ namespace ProjectArrow.Helpers
             _graphics.ApplyChanges();
 
             _mainRenderTarget = new RenderTarget2D(_graphicsDevice, GameWidth, GameHeight);
+
             UpdateView();
         }
 
         private void OnGraphicsDeviceCreated(object sender, EventArgs e)
         {
-            //  When graphics device is created, call UpdateView to recalculate the screen scale matrix
+            //  When graphics device is created, call UpdateView
             UpdateView();
         }
 
         private void OnGraphicsDeviceReset(object sender, EventArgs e)
         {
-            //  When graphics device is reset, call UpdateView to recalculate the screen scale matrix
+            //  When graphics device is reset, call UpdateView
             UpdateView();
         }
 
         private void OnWindowSizeChanged(object sender, EventArgs e)
         {
-            if (_window.ClientBounds.Width > 0 && _window.ClientBounds.Height > 0 && !IsResizing)
+            if (!IsResizing)
             {
                 IsResizing = true;
                 _graphics.PreferredBackBufferWidth = _window.ClientBounds.Width;
                 _graphics.PreferredBackBufferHeight = _window.ClientBounds.Height;
+                _graphics.ApplyChanges();
                 UpdateView();
                 IsResizing = false;
             }
@@ -105,26 +112,30 @@ namespace ProjectArrow.Helpers
 
         public void UpdateView()
         {
-            float ScreenWidth = _graphicsDevice.PresentationParameters.BackBufferWidth;
+            float screenWidth = _graphicsDevice.PresentationParameters.BackBufferWidth;
             float screenHeight = _graphicsDevice.PresentationParameters.BackBufferHeight;
 
-            if (ScreenWidth / GameWidth > screenHeight / GameHeight)
-            {
-                ViewWidth = (int)(screenHeight / GameHeight * GameWidth);
-                ViewHeight = (int)screenHeight;
-            }
-            else
-            {
-                ViewWidth = (int)ScreenWidth;
-                ViewHeight = (int)(ScreenWidth / GameWidth * GameHeight);
-            }
+            float scaleY = screenHeight / GameHeight;
+            float scaleX = screenWidth / GameWidth;
+            scale = Math.Min(scaleX, scaleY);
 
-            _renderTargetDestination = new Rectangle
-            (
-                (int)(ScreenWidth / 2f - (ViewWidth / 2)),
-                (int)(screenHeight / 2f - (ViewHeight / 2)),
-                (int)ViewWidth,
-                (int)ViewHeight
+
+            //Calculate the size of the scaled render target
+            //Without Floor Or Ceiling, There Will Be Multiple Pixels Copied and Scale Will Look Bad On UI As Well.
+            //Any combination of Round, Ceiling, or Max (Math.Max for the scale ^) will cause the Render Target to go outside the view area, and impede UI
+            float scaledWidth = GameWidth * (float)Math.Floor(scale);
+            float scaledHeight = GameHeight * (float)Math.Floor(scale);
+
+            // Calculate the position to center the render target
+            float offsetX = (screenWidth - scaledWidth) / 2f;
+            float offsetY = (screenHeight - scaledHeight) / 2f;
+
+            // Set the destination rectangle for rendering
+            _renderTargetDestination = new Rectangle(
+                (int)offsetX,
+                (int)offsetY,
+                (int)scaledWidth,
+                (int)scaledHeight
             );
 
             Viewport = new Viewport(_renderTargetDestination);
@@ -139,7 +150,7 @@ namespace ProjectArrow.Helpers
         public void TargetEndDraw(SpriteBatch _spriteBatch)
         {
             _graphicsDevice.SetRenderTarget(null);
-            _spriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.AlphaBlend, SamplerState.PointClamp);
+            _spriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.AlphaBlend, SamplerState.PointClamp, null, null, null, null);
             _spriteBatch.Draw(_mainRenderTarget, _renderTargetDestination, Color.White);
             _spriteBatch.End();
         }      

@@ -12,10 +12,10 @@ namespace ProjectArrow.Objects
     {
         public Vector2 linePosition;
 
-        public Battery(InputHelper inputHelper)
+        public Battery(/*InputHelper inputHelper,*/ Vector2 Position)
         {
             texture = GameData.TextureMap["Battery"];
-            position = new Vector2((inputHelper.WorldMousePosition.X - texture.Width / 2), inputHelper.WorldMousePosition.Y - 12);
+            position = Position; //new Vector2((inputHelper.WorldMousePosition.X - texture.Width / 2), inputHelper.WorldMousePosition.Y - 12);
             linePosition = new Vector2(position.X + (texture.Width / 2), position.Y);
             origin = new Vector2((int)(position.X + GameData.TileSize / 2), (int)(position.Y + 12));
             depth = Helper.GetDepth(origin);

@@ -17,7 +17,10 @@ namespace ProjectArrow.Objects
         public Vector2 origin;
         public float depth;
 
-
+        public GameObject()
+        {
+            GameData.GameObjects.Add(this);
+        }
 
         public virtual void Update(GameTime gameTime)
         {
