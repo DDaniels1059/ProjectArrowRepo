@@ -74,7 +74,7 @@ namespace ProjectArrow.UI
             ScreenWidthOffset = ((int)ScreenManager.VirtualWidth / 2) - (BackDropWidth / 2);
             ScreenHeightOffset = (int)ScreenManager.VirtualHeight + 170;
 
-            AllowButtonUpdate(true);
+            //AllowButtonUpdate(true);
 
 
             if (inputHelper.IsKeyPress(Keys.Escape))
@@ -90,25 +90,22 @@ namespace ProjectArrow.UI
                 }
             }
 
-            //if (lastScreenWidthOffset != ScreenWidthOffset)
-            //{
-            //    AllowButtonUpdate(true);
-            //    BackDropWidth = 180 * (int)GameData.UIScale;
-            //    BackDrop.Width = BackDropWidth;
-            //    BackDrop.X = ScreenWidthOffset;
-            //    CalculateButtons();
-            //    lastScreenWidthOffset = ScreenWidthOffset;
-            //}
+            if (lastScreenWidthOffset != ScreenWidthOffset)
+            {
+                BackDropWidth = 180 * (int)GameData.UIScale;
+                BackDrop.Width = BackDropWidth;
+                BackDrop.X = ScreenWidthOffset;
+                CalculateButtons();
+                lastScreenWidthOffset = ScreenWidthOffset;
+            }
 
-            //if (lastScreenHeightOffset != ScreenHeightOffset)
-            //{
-            //    AllowButtonUpdate(true);
-            //    ScreenHeightOffset = (int)ScreenManager.VirtualHeight + 170;
-            //    BackDrop.Height = ScreenHeightOffset;
-            //    lastScreenHeightOffset = ScreenHeightOffset;
-            //    CalculateButtons();
-            //    AllowButtonUpdate(false);
-            //}
+            if (lastScreenHeightOffset != ScreenHeightOffset)
+            {
+                ScreenHeightOffset = (int)ScreenManager.VirtualHeight + 170;
+                BackDrop.Height = ScreenHeightOffset;
+                lastScreenHeightOffset = ScreenHeightOffset;
+                CalculateButtons();
+            }
 
             if (isOpen)
             {
@@ -266,6 +263,9 @@ namespace ProjectArrow.UI
                 default:
                     break;
             }
+
+            CalculateButtons();
+
         }
         #endregion
 

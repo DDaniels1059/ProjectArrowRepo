@@ -185,8 +185,8 @@ namespace ProjectArrow
 
                 if (GameData.IsDebug)
                 {
-                    _spriteBatch.DrawString(GameData.GameFont, "WorldPos: " + ((int)_inputHelper.WorldMousePosition.X).ToString() + " " + ((int)_inputHelper.WorldMousePosition.Y).ToString(), new Vector2(ScreenManager.UiViewport.X + 40, (int)50), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);
-                    _spriteBatch.DrawString(GameData.GameFont, "ScreenPos: " + ((int)_inputHelper.ScreenMousePosition.X).ToString() + " " + ((int)_inputHelper.ScreenMousePosition.Y).ToString(), new Vector2(ScreenManager.UiViewport.X + 40, (int)100), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);
+                    _spriteBatch.DrawString(GameData.GameFont, "WorldPos: " + ((int)_inputHelper.WorldMousePosition.X).ToString() + " " + ((int)_inputHelper.WorldMousePosition.Y).ToString(), new Vector2(20, (int)50), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);
+                    _spriteBatch.DrawString(GameData.GameFont, "ScreenPos: " + ((int)_inputHelper.ScreenMousePosition.X).ToString() + " " + ((int)_inputHelper.ScreenMousePosition.Y).ToString(), new Vector2(20, (int)100), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);
                 }
 
                 string textToCenter = "Paused";

@@ -16,6 +16,8 @@ namespace ProjectArrow.Helpers
         private static float scale;
         private static float viewWidth;
         private static float viewHeight;
+        private static float viewHeightOffset;
+        private static float viewWidthOffset;
         private static bool isResizing;
         private static RenderTarget2D mainRenderTarget;
         private static Rectangle mainTargetDestination;
@@ -121,14 +123,25 @@ namespace ProjectArrow.Helpers
 
             WorldViewport = new Viewport(mainTargetDestination);
 
+            viewHeightOffset = (ScreenHeight - viewHeight) / 2;
+
+            if (viewHeightOffset < 0)
+                viewHeightOffset = 0;
+
+            viewWidthOffset = (ScreenWidth - viewWidth) / 2;
+
+            if (viewWidthOffset < 0)
+                viewWidthOffset = ((ScreenWidth - viewWidth) / 2f);
+
             _uiRenderTargetDestination = new Rectangle(
-                (int)((ScreenWidth - viewWidth) / 2f), // Center horizontally
-                (int)0, // Center vertically
+                (int)viewWidthOffset, // Center horizontally
+                (int)viewHeightOffset, // Center vertically
                 (int)viewWidth,
                 (int)viewHeight
             );
 
             UiViewport = new Viewport(_uiRenderTargetDestination);
+
         }
 
         public static void WorldTargetBeginDraw()
