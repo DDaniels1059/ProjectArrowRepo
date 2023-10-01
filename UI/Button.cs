@@ -15,7 +15,7 @@ namespace ProjectArrow.UI
         public Rectangle bounds;
         private Rectangle _defaultSprite;
         private Rectangle _pressedSprite;
-        public bool canDraw = false;
+        public bool allowUpdate = true;
         private bool _isPressed = false;
         private bool _isToggle = false;
         private bool _isAnchoredRight = false;
@@ -83,7 +83,7 @@ namespace ProjectArrow.UI
         //Update Each Button In Main Call By Using For Loop
         public void Update(Vector2 VirtualMousePositon, InputHelper InputHelper, float DeltaTime)
         {
-            if (canDraw)
+            if (allowUpdate)
             {
                 //This Will Scale The Buttons Evenly By The Current UIScale
                 //We Subtract Anything That Is Not Anchored Right By TileSize So It Will Be Offset Correctly
@@ -99,7 +99,7 @@ namespace ProjectArrow.UI
                     _offset.X = _defaultSprite.Width - _scaledWidth;
                 }
 
-                _offset.Y = _defaultSprite.Width - _scaledWidth - 2;
+                _offset.Y = -1 * (GameData.UIScale);
 
 
 
@@ -120,10 +120,10 @@ namespace ProjectArrow.UI
                     // This Will Scale The Buttons Vertical Position :
                     // In This Case Down By An Amount that will Center It To The Text Rectangles
                     // Look In Settings Menu For Those Examples, *Please* Forgive The Messy Code
-                    _verticalOffset = (int)(2 * GameData.UIScale) * (int)GameData.UIScale - (int)GameData.UIScale;
+                    _verticalOffset = (int)((2 * GameData.UIScale) * (int)GameData.UIScale) - (int)GameData.UIScale * (int)GameData.UIScale + 2;
 
                     _offset.X = (_defaultSprite.Width - _scaledWidth) / 2 + _sideAnchorOffset;
-                    _offset.Y = (_defaultSprite.Width - _scaledWidth) / 2 + _verticalOffset;
+                    _offset.Y =  -1 * (GameData.UIScale);
                 }
 
 
@@ -155,7 +155,7 @@ namespace ProjectArrow.UI
         //Draw Each Button In Main Call By Using For Loop
         public void Draw(SpriteBatch _spriteBatch)
         {
-            if (!_isToggle && canDraw)
+            if (!_isToggle)
             {
                 if (_isPressed)
                 {
@@ -166,7 +166,7 @@ namespace ProjectArrow.UI
                     _spriteBatch.Draw(GameData.TextureAtlas, bounds, _defaultSprite, Color.White, 0f, Vector2.Zero, _flip, 1f);
                 }
             }
-            else if (_isToggle && canDraw)
+            else if (_isToggle)
             {
                 if (_toggled)
                 {
@@ -178,7 +178,7 @@ namespace ProjectArrow.UI
                 }
             }
 
-            if (GameData.IsDebug && canDraw)
+            if (GameData.IsDebug)
                 _spriteBatch.DrawHollowRect(bounds, Color.Red);
         }
     }

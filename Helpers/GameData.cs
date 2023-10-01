@@ -16,8 +16,6 @@ namespace ProjectArrow.Helpers
         public static SpriteFont GameFont { get; private set; }
         public static Texture2D TextureAtlas { get; private set; }
         public static Texture2D PlayerAtlas { get; private set; }
-
-        public static Texture2D View { get; private set; }
         public static Texture2D Pixel { get; private set; }
 
         public static int TileSize { get; private set; }
@@ -26,17 +24,14 @@ namespace ProjectArrow.Helpers
         public static bool IsPaused { get; set; }
 
         public static List<Button> ButtonList { get; set; }
-        public static List<Objects.GameObject> GameObjects { get; set; }
-        public static List<PowerLine> PowerLines { get; set; }
+        public static List<GameObject> GameObjects { get; set; }
 
         public static void LoadData(ContentManager content, GraphicsDevice graphicsDevice)
         {
             TileSize = 16;
-            UIScale = 1f;
+            UIScale = 3f;
             IsDebug = false;
             IsPaused = false;
-
-            View = content.Load<Texture2D>("Misc/View");
 
             TextureAtlas = content.Load<Texture2D>("Misc/TextureAtlas");
             TextureMap = new Dictionary<string, Rectangle>
@@ -65,7 +60,6 @@ namespace ProjectArrow.Helpers
             Pixel.SetData<Color>(new Color[] { Color.White });
             GameFont = content.Load<SpriteFont>("Misc/gameFont");
 
-            PowerLines = new List<PowerLine>();
             ButtonList = new List<Button>();
             GameObjects = new List<Objects.GameObject>();
         }

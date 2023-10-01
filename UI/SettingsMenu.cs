@@ -10,112 +10,105 @@ namespace ProjectArrow.UI
     public class SettingsMenu
     {
         private Rectangle BackDrop;
-        private Button ZoomSelectionLeft;
-        private Button ZoomSelectionRight;
-        private Button UISelectionLeft;
-        private Button UISelectionRight;
-        private Button WindowSelectionLeft;
-        private Button WindowSelectionRight;
-        private Button DebugToggle;
-
         private bool isOpen = false;
-        private  Color BackDropColor = new(70, 65, 65, 230);
-        //private static Color BackDropColor = new Color(220, 122, 100, 0);
+        private Color BackDropColor = new(70, 65, 65, 230);
 
         // Set Window Display Text
-        private int currentWindow = 0; // 0 for windowed, 1 for borderless, 2 for fullscreen
-        private static readonly string[] WindowString = new string[3] { " WINDOWED ", " BORDERLESS ", " FULLSCREEN " };
-        private string currWindowString;
+        private readonly string[] WindowString = new string[3] { " WINDOWED ", " BORDERLESS ", " FULLSCREEN " };
 
         // Set Scale Display Text
-        private static readonly string[] ScaleString = new string[2] { " UI SCALE x1 ", " UI SCALE x2 "};
-        private string currUIScaleString;
+        private readonly string[] UIScaleString = new string[1] { " UI SCALE x " + GameData.UIScale.ToString() + " "};
 
         // Set Zoom Display Text
-        private static readonly string[] ZoomString = new string[3] { " ZOOM x1 ", " ZOOM x2 ", " ZOOM x3 "};
-        private string currZoomString;
+        private readonly string[] ZoomString = new string[3] { " ZOOM x1 ", " ZOOM x2 ", " ZOOM x3 "};
 
-        // Text Rectangles We Base The Button Position On
-        private Vector2 WindowSelectionTextSize;
-        private Rectangle WindowTextRectangle;
 
-        private Vector2 UISelectionTextSize;
-        private Rectangle UITextRectangle;
+        private List<Button> SettingsButtons;
+        private int lastScreenWidthOffset;
+        private int lastScreenHeightOffset;
+        private int ScreenWidthOffset;
+        private int ScreenHeightOffset;
+        private int BackDropWidth = 150;
+        private float scrollSpeed = 17f; // Adjust the scroll speed as needed
 
-        private Vector2 ZoomSelectionTextSize;
-        private Rectangle ZoomTextRectangle;
 
-        // Make The Code Cleaner
-        private static List<Rectangle> TextRectangles;
-        private static List<Button> SettingsButtons;
+        private LeftRightButton WindowButton;
+        private LeftRightButton UIButton;
+        private LeftRightButton ZoomButton;
+        private Button DebugToggle;
 
-        // Scroll Wheel
-        private float scrollSpeed = 7f; // Adjust the scroll speed as needed
-        private int VirtualWidth;
-        private int VirtualHeight;
-        private int BackDropWidth = 280;
-        public SettingsMenu(Screen _screen)
+
+        public SettingsMenu()
         {
-            VirtualWidth = _screen.GameWidth;
-            VirtualHeight = _screen.GameHeight;
+            ScreenWidthOffset = ((int)ScreenManager.VirtualWidth / 2) - (BackDropWidth / 2);
+            ScreenHeightOffset = (int)ScreenManager.VirtualHeight + 170;
+            lastScreenWidthOffset = ScreenWidthOffset;
+            lastScreenHeightOffset = ScreenHeightOffset;
 
-            int X = (VirtualWidth / 2) - (BackDropWidth / 2);
-
-            BackDrop = new Rectangle(X, 0, BackDropWidth, VirtualWidth + 170);
-
-            currWindowString = WindowString[0];
-            currUIScaleString = ScaleString[0];
-            currZoomString = ZoomString[0];
-            MeasureStrings();
-
-            TextRectangles = new List<Rectangle>();
+            BackDrop = new Rectangle(ScreenWidthOffset, 0, BackDropWidth, (int)ScreenManager.ScreenHeight + 170);
             SettingsButtons = new List<Button>();
 
-            CreateRectangle(WindowTextRectangle);
-            CreateRectangle(UITextRectangle);
-            CreateRectangle(ZoomTextRectangle);
+            WindowButton = new(GameData.TextureMap["LeftArrow"], GameData.TextureMap["LeftArrowPressed"]);
+            WindowButton.currOptionString = WindowString[0];
+            WindowButton.UpdateButtonPosition((int)(ScreenManager.ScreenWidth / 2), 0);
+            WindowButton.AddToList(SettingsButtons);
 
-            CreateButton(ref WindowSelectionLeft, false, false, false, GameData.TextureMap["LeftArrow"], GameData.TextureMap["LeftArrowPressed"]);
-            CreateButton(ref WindowSelectionRight, false, true, true, GameData.TextureMap["LeftArrow"], GameData.TextureMap["LeftArrowPressed"]);
-            CreateButton(ref ZoomSelectionLeft, false, false, false, GameData.TextureMap["LeftArrow"], GameData.TextureMap["LeftArrowPressed"]);
-            CreateButton(ref ZoomSelectionRight, false, true, true, GameData.TextureMap["LeftArrow"], GameData.TextureMap["LeftArrowPressed"]);
-            CreateButton(ref UISelectionLeft, false, false, false, GameData.TextureMap["LeftArrow"], GameData.TextureMap["LeftArrowPressed"]);
-            CreateButton(ref UISelectionRight, false, true, true, GameData.TextureMap["LeftArrow"], GameData.TextureMap["LeftArrowPressed"]);
+            UIButton = new(GameData.TextureMap["LeftArrow"], GameData.TextureMap["LeftArrowPressed"]);
+            UIButton.currOptionString = UIScaleString[0];
+            UIButton.UpdateButtonPosition((int)(ScreenManager.ScreenWidth / 2), 0);
+            UIButton.AddToList(SettingsButtons);
 
-            CreateButton(ref DebugToggle, true, false, false, GameData.TextureMap["DebugButton"], GameData.TextureMap["DebugButtonPressed"]);
-        }
+            ZoomButton = new(GameData.TextureMap["LeftArrow"], GameData.TextureMap["LeftArrowPressed"]);
+            ZoomButton.currOptionString = ZoomString[0];
+            ZoomButton.UpdateButtonPosition((int)(ScreenManager.ScreenWidth / 2), 0);
+            ZoomButton.AddToList(SettingsButtons);
 
-        private static void CreateButton(ref Button button, bool isToggle, bool isFlipped, bool isAnchoredRight, Rectangle defaultSprite,Rectangle pressedSprite)
-        {
-            button = new Button(defaultSprite, pressedSprite, isToggle, isFlipped, isAnchoredRight);
-            SettingsButtons.Add(button);
-        }
+            DebugToggle = new Button(GameData.TextureMap["DebugButton"], GameData.TextureMap["DebugButtonPressed"], true, false, false);
+            SettingsButtons.Add(DebugToggle);
 
-        private static void CreateRectangle(Rectangle rectangle)
-        {
-            rectangle = new Rectangle(0, 0, rectangle.Width, rectangle.Height);
-            TextRectangles.Add(rectangle);
+            CalculateButtons();
         }
 
         public void Update(InputHelper inputHelper)
         {
+            ScreenWidthOffset = ((int)ScreenManager.VirtualWidth / 2) - (BackDropWidth / 2);
+            ScreenHeightOffset = (int)ScreenManager.VirtualHeight + 170;
+
+            AllowButtonUpdate(true);
+
+
             if (inputHelper.IsKeyPress(Keys.Escape))
             {
-                isOpen = !isOpen;
+                AllowButtonUpdate(true);
                 CalculateButtons();
-                GameData.IsPaused = true;
-
-                foreach (Button button in SettingsButtons)
-                button.canDraw = true;
+                isOpen = !isOpen;
 
                 if (!isOpen)
                 {
+                    AllowButtonUpdate(false);
                     BackDrop.Y = 0;
-                    foreach (Button button in SettingsButtons)
-                    button.canDraw = false;
-                    GameData.IsPaused = false;
                 }
             }
+
+            //if (lastScreenWidthOffset != ScreenWidthOffset)
+            //{
+            //    AllowButtonUpdate(true);
+            //    BackDropWidth = 180 * (int)GameData.UIScale;
+            //    BackDrop.Width = BackDropWidth;
+            //    BackDrop.X = ScreenWidthOffset;
+            //    CalculateButtons();
+            //    lastScreenWidthOffset = ScreenWidthOffset;
+            //}
+
+            //if (lastScreenHeightOffset != ScreenHeightOffset)
+            //{
+            //    AllowButtonUpdate(true);
+            //    ScreenHeightOffset = (int)ScreenManager.VirtualHeight + 170;
+            //    BackDrop.Height = ScreenHeightOffset;
+            //    lastScreenHeightOffset = ScreenHeightOffset;
+            //    CalculateButtons();
+            //    AllowButtonUpdate(false);
+            //}
 
             if (isOpen)
             {
@@ -123,14 +116,12 @@ namespace ProjectArrow.UI
                 if (inputHelper.IsScrollingUp() && BackDrop.Y > -150)
                 {
                     BackDrop.Y -= (int)scrollSpeed;
-                    //Update Button Y Positions
                     UpdateButtonForScroll();
                 }
                 // Check if the scroll wheel is actively being scrolled down
                 else if (inputHelper.IsScrollingDown() && BackDrop.Y < 0)
                 {
                     BackDrop.Y += (int)scrollSpeed;
-                    //Update Button Y Positions
                     UpdateButtonForScroll();
                 }
             }
@@ -140,15 +131,21 @@ namespace ProjectArrow.UI
         {
             if (isOpen)
             {
-                _spriteBatch.DrawString(GameData.GameFont, currWindowString, new Vector2(WindowTextRectangle.X + (GameData.UIScale) + 1, WindowTextRectangle.Y + (4 * GameData.UIScale)), Color.Black, 0.0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, 1f);
-                _spriteBatch.DrawString(GameData.GameFont, currUIScaleString, new Vector2(UITextRectangle.X + (GameData.UIScale), UITextRectangle.Y + (4 * GameData.UIScale)), Color.Black, 0.0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, 1f);
-                _spriteBatch.DrawString(GameData.GameFont, currZoomString, new Vector2(ZoomTextRectangle.X + (GameData.UIScale), ZoomTextRectangle.Y + (4 * GameData.UIScale)), Color.Black, 0.0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, 1f);
+                for (int i = 0; i < SettingsButtons.Count; i++)
+                {
+                    Button button = GameData.ButtonList[i];
+                    button.Draw(_spriteBatch);
+                }
+
+                WindowButton.DrawString(_spriteBatch);
+                ZoomButton.DrawString(_spriteBatch);
+                UIButton.DrawString(_spriteBatch);
 
                 if (GameData.IsDebug)
                 {
-                    _spriteBatch.DrawHollowRect(UITextRectangle, Color.Red);
-                    _spriteBatch.DrawHollowRect(WindowTextRectangle, Color.Red);
-                    _spriteBatch.DrawHollowRect(ZoomTextRectangle, Color.Red);
+                    _spriteBatch.DrawHollowRect(UIButton.TextRectangle, Color.Red);
+                    _spriteBatch.DrawHollowRect(WindowButton.TextRectangle, Color.Red);
+                    _spriteBatch.DrawHollowRect(ZoomButton.TextRectangle, Color.Red);
                 }
 
                 _spriteBatch.DrawFilledRect(BackDrop, BackDropColor);
@@ -177,13 +174,13 @@ namespace ProjectArrow.UI
                 _camera.Zoom *= new Vector2(2f);
 
                 if (_camera.Zoom.X == 1f)
-                    currZoomString = ZoomString[0];
+                    ZoomButton.currOptionString = ZoomString[0];
                 else if (_camera.Zoom.X == 2f)
-                    currZoomString = ZoomString[1];
+                    ZoomButton.currOptionString = ZoomString[1];
                 else if (_camera.Zoom.X == 4f)
-                    currZoomString = ZoomString[2];
-                CalculateButtons();
-                UpdateButtonForScroll();
+                    ZoomButton.currOptionString = ZoomString[2];
+                //CalculateButtons();
+                //UpdateButtonForScroll();
             }
         }
 
@@ -193,27 +190,27 @@ namespace ProjectArrow.UI
                 _camera.Zoom /= new Vector2(2f);
 
             if (_camera.Zoom.X == 1f)
-                currZoomString = ZoomString[0];
+                ZoomButton.currOptionString = ZoomString[0];
             else if (_camera.Zoom.X == 2f)
-                currZoomString = ZoomString[1];
+                ZoomButton.currOptionString = ZoomString[1];
             else if (_camera.Zoom.X == 4f)
-                currZoomString = ZoomString[2];
-            CalculateButtons();
-            UpdateButtonForScroll();
+                ZoomButton.currOptionString = ZoomString[2];
+
+
+            //CalculateButtons();
+            //UpdateButtonForScroll();
         }
         #endregion
 
         #region UI Scale Buttons
         private void UIPlusPress()
         {
-            if (GameData.UIScale < 2.0f)
+            if (GameData.UIScale < 4.0f)
             {
                 GameData.UIScale += 1f;
-
-                if (GameData.UIScale == 1f)
-                    currUIScaleString = ScaleString[0];
-                else if (GameData.UIScale == 2f)
-                    currUIScaleString = ScaleString[1];
+                UIScaleString[0] = " UI SCALE x" + GameData.UIScale.ToString() + " ";
+                UIButton.currOptionString = UIScaleString[0];
+                BackDrop.Y = 0;
                 CalculateButtons();
                 UpdateButtonForScroll();
             }
@@ -224,11 +221,9 @@ namespace ProjectArrow.UI
             if (GameData.UIScale > 1.0f)
             {
                 GameData.UIScale -= 1f;
-
-                if (GameData.UIScale == 1f)
-                    currUIScaleString = ScaleString[0];
-                else if (GameData.UIScale == 2f)
-                    currUIScaleString = ScaleString[1];
+                UIScaleString[0] = " UI SCALE x" + GameData.UIScale.ToString() + " ";
+                UIButton.currOptionString = UIScaleString[0];
+                BackDrop.Y = 0;
                 CalculateButtons();
                 UpdateButtonForScroll();
             }
@@ -236,40 +231,37 @@ namespace ProjectArrow.UI
         #endregion
 
         #region Window Buttons
-        private void WindowSelectionRightPress(Screen _screen)
+        private void WindowSelectionRightPress()
         {
-            currentWindow++;
-            if (currentWindow > 2)
-                currentWindow = 2; // Wrap around to windowed
-            ChangeWindow(_screen);
-            MeasureStrings();
-            CalculateButtons();
+            WindowButton.currentOption++;
+            if (WindowButton.currentOption > 2)
+                WindowButton.currentOption = 2; // Wrap around to windowed
+            ChangeWindow();
         }
 
-        private void WindowSelectionLeftPress(Screen _screen)
+        private void WindowSelectionLeftPress()
         {
-            currentWindow--;
-            if (currentWindow < 0)
-                currentWindow = 0; // Wrap around to fullscreen
-            ChangeWindow(_screen);
-            CalculateButtons();
+            WindowButton.currentOption--;
+            if (WindowButton.currentOption < 0)
+                WindowButton.currentOption = 0; // Wrap around to fullscreen
+            ChangeWindow();
         }
 
-        private void ChangeWindow(Screen _screen)
+        private void ChangeWindow()
         {
-            switch (currentWindow)
+            switch (WindowButton.currentOption)
             {
                 case 0:
-                    _screen.SetWindowed(1280, 720);
-                    currWindowString = WindowString[0];
+                    ScreenManager.SetWindowed(1280, 720);
+                    WindowButton.currOptionString = WindowString[0];
                     break;
                 case 1:
-                    _screen.SetBorderless();
-                    currWindowString = WindowString[1];
+                    ScreenManager.SetBorderless();
+                    WindowButton.currOptionString = WindowString[1];
                     break;
                 case 2:
-                    _screen.SetFullscreen();
-                    currWindowString = WindowString[2];
+                    ScreenManager.SetFullscreen();
+                    WindowButton.currOptionString = WindowString[2];
                     break;
                 default:
                     break;
@@ -279,79 +271,43 @@ namespace ProjectArrow.UI
 
         private void CalculateButtons()
         {
-            MeasureStrings();
+            BackDropWidth = 180 * (int)GameData.UIScale; 
+            BackDrop.Width = BackDropWidth;
+            BackDrop.X = ScreenWidthOffset;
 
-            //I Base The Buttons Location On Their Respective TextRectangle (If They Have One)
-            //Otherwise The Location Is Based On Whatever Rect It's Relative To For My Needs
-            //The Magic Number 320 Is Just The Virtual Width. If You See This Abomination,
-            //I Gave Up On Making A Simpler Solution. Sorry
-            int Num1 = (VirtualWidth / 2);
+            int Num1 = ((int)ScreenManager.VirtualWidth / 2);
+            WindowButton.UpdateButtonPosition(Num1, 10 * (int)GameData.UIScale);
+            UIButton.UpdateButtonPosition(Num1, (int)WindowButton.TextRectangle.Bottom + (10 * (int)GameData.UIScale));
+            ZoomButton.UpdateButtonPosition(Num1, (int)UIButton.TextRectangle.Bottom + (10 * (int)GameData.UIScale));
 
-            WindowTextRectangle.X = Num1 - ((int)WindowSelectionTextSize.X / 2);
-            WindowTextRectangle.Y = 10 * (int)GameData.UIScale;
-            WindowTextRectangle.Width = (int)WindowSelectionTextSize.X;
-            WindowTextRectangle.Height = (int)WindowSelectionTextSize.Y * 2;
-
-            UITextRectangle.X = Num1 - ((int)UISelectionTextSize.X / 2);
-            UITextRectangle.Y = (int)WindowTextRectangle.Bottom + (10 * (int)GameData.UIScale);
-            UITextRectangle.Width = (int)UISelectionTextSize.X;
-            UITextRectangle.Height = (int)UISelectionTextSize.Y * 2;
-
-            ZoomTextRectangle.X = Num1 - ((int)ZoomSelectionTextSize.X / 2);
-            ZoomTextRectangle.Y = (int)UITextRectangle.Bottom + (10 * (int)GameData.UIScale);
-            ZoomTextRectangle.Width = (int)ZoomSelectionTextSize.X;
-            ZoomTextRectangle.Height = (int)ZoomSelectionTextSize.Y * 2;
-
-
-            //Update The Buttons Position Based On Its Relative Text Rectangle
-            //If The Button Is Not Anchored To The Right We Subtract The TileSize So It Is 
-            WindowSelectionLeft.position = WindowTextRectangle.Location.ToVector2();
-            WindowSelectionRight.position = new Vector2(WindowTextRectangle.Right, WindowTextRectangle.Y);
-
-            UISelectionLeft.position = UITextRectangle.Location.ToVector2();
-            UISelectionRight.position = new Vector2(UITextRectangle.Right, UITextRectangle.Y);
-
-            ZoomSelectionLeft.position = ZoomTextRectangle.Location.ToVector2();
-            ZoomSelectionRight.position = new Vector2(ZoomTextRectangle.Right, ZoomTextRectangle.Y);
-
-            DebugToggle.position.X = ZoomSelectionLeft.position.X;
-            DebugToggle.position.Y = ZoomTextRectangle.Bottom + (20 * (int)GameData.UIScale);
-        }
-
-        private void MeasureStrings()
-        {
-            WindowSelectionTextSize = GameData.GameFont.MeasureString(currWindowString) * GameData.UIScale;
-            UISelectionTextSize = GameData.GameFont.MeasureString(currUIScaleString) * GameData.UIScale;
-            ZoomSelectionTextSize = GameData.GameFont.MeasureString(currZoomString) * GameData.UIScale;
+            DebugToggle.position.X = ZoomButton.LeftButton.position.X;
+            DebugToggle.position.Y = ZoomButton.TextRectangle.Bottom + (20 * (int)GameData.UIScale);
         }
 
         private void UpdateButtonForScroll()
         {
-            WindowTextRectangle.Y = BackDrop.Y + 10 * (int)GameData.UIScale;
-            UITextRectangle.Y = WindowTextRectangle.Bottom + (10 * (int)GameData.UIScale);
-            ZoomTextRectangle.Y = UITextRectangle.Bottom + (10 * (int)GameData.UIScale);
-
-            WindowSelectionLeft.position.Y = WindowTextRectangle.Y;
-            WindowSelectionRight.position.Y = WindowTextRectangle.Y;
-
-            UISelectionLeft.position.Y = UITextRectangle.Y;
-            UISelectionRight.position.Y = UITextRectangle.Y;            
-
-            ZoomSelectionLeft.position.Y = ZoomTextRectangle.Y;
-            ZoomSelectionRight.position.Y = ZoomTextRectangle.Y;
-
-            DebugToggle.position.X = ZoomSelectionLeft.position.X;
-            DebugToggle.position.Y = ZoomTextRectangle.Bottom + (20 * (int)GameData.UIScale);
+            WindowButton.UpdateButtonY(BackDrop.Y + 10 * (int)GameData.UIScale);
+            UIButton.UpdateButtonY(WindowButton.TextRectangle.Bottom + (10 * (int)GameData.UIScale));
+            ZoomButton.UpdateButtonY(UIButton.TextRectangle.Bottom + (10 * (int)GameData.UIScale));
+            DebugToggle.position.Y = ZoomButton.TextRectangle.Bottom + (20 * (int)GameData.UIScale);
         }
 
-        public void AssignButtonFunctions(Basic2DCamera _camera, Screen _screen)
+        private void AllowButtonUpdate(bool allow)
         {
-            ZoomSelectionRight.buttonPress = () => ZoomInPress(_camera);
-            ZoomSelectionLeft.buttonPress = () => ZoomOutPress( _camera);
-            UISelectionRight.buttonPress = UIPlusPress;
-            UISelectionLeft.buttonPress = UIMinusPress;
-            WindowSelectionLeft.buttonPress = () => WindowSelectionLeftPress(_screen);
-            WindowSelectionRight.buttonPress = () => WindowSelectionRightPress(_screen);
+            for (int i = 0; i < SettingsButtons.Count; i++)
+            {
+                SettingsButtons[i].allowUpdate = allow;
+            }
+        }
+
+        public void AssignButtonFunctions(Basic2DCamera _camera)
+        {
+            ZoomButton.RightButton.buttonPress = () => ZoomInPress(_camera);
+            ZoomButton.LeftButton.buttonPress = () => ZoomOutPress( _camera);
+            UIButton.RightButton.buttonPress = UIPlusPress;
+            UIButton.LeftButton.buttonPress = UIMinusPress;
+            WindowButton.LeftButton.buttonPress =  WindowSelectionLeftPress;
+            WindowButton.RightButton.buttonPress =  WindowSelectionRightPress;
             DebugToggle.buttonPress += DebugPress;
         }
 

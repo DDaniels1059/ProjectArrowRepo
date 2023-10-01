@@ -15,18 +15,22 @@ namespace ProjectArrow.Helpers
         private MouseState currentMouseState = new();
         private KeyboardState lastKeyboardState = new();
         private MouseState lastMouseState = new();
-        private Vector2 cursorPos = new(0, 0);
+        private static Vector2 cursorPos = new(0, 0);
+
+        //private float mouseClickCooldown = 0.02f;
+        //private float timeSinceLastMouseClick = 0f;
 
         private int previousScrollWheelValue;
         public int ScrollWheelValue { get; private set; }
 
-        private Vector2 virtualMousePosition;
-        public Vector2 VirtualMousePosition
-        {
-            get { return virtualMousePosition; }
-            private set { virtualMousePosition = value; }
-        }
         private Vector2 worldMousePosition;
+        private Vector2 screenMousePosition;
+
+        public Vector2 ScreenMousePosition
+        {
+            get { return screenMousePosition; }
+            private set { screenMousePosition = value; }
+        }
         public Vector2 WorldMousePosition
         {
             get { return worldMousePosition; }
@@ -35,7 +39,7 @@ namespace ProjectArrow.Helpers
 
         public enum MouseButtons { LeftButton, RightButton }
 
-        public void Update(Basic2DCamera _camera, Screen _screen)
+        public void Update(Basic2DCamera _camera)
         {
             lastKeyboardState = currentKeyboardState;
             lastMouseState = currentMouseState;
@@ -50,10 +54,12 @@ namespace ProjectArrow.Helpers
             previousScrollWheelValue = ScrollWheelValue;
             ScrollWheelValue = (int)(currentMouseState.ScrollWheelValue);
 
-            // Transform Mouse Position to Our Virtual 320x180 Resolution
-            virtualMousePosition = ConvertScreenToVirtualResolution(cursorPos, _screen);
-            // Transform Mouse Position to World Space
-            worldMousePosition = _camera.ScreenToCamera(VirtualMousePosition);
+
+            // Transform RT Mouse Position to World Space
+            worldMousePosition = _camera.ScreenToCamera(ConvertToWorldResolution());
+            // Screen Mouse Positon
+            screenMousePosition = ConvertToUIResolution();
+
         }
 
         public bool IsScrollingUp()
@@ -66,18 +72,35 @@ namespace ProjectArrow.Helpers
             return ScrollWheelValue < previousScrollWheelValue;
         }
 
-        public static Vector2 ConvertScreenToVirtualResolution(Vector2 mousePosition, Screen _screen)
+        public static Vector2 ConvertToWorldResolution()
         {
             // Calculate the position within the viewport
             Vector2 viewportPosition = new(
-               (mousePosition.X - _screen.Viewport.X) / _screen.Viewport.Width,
-                (mousePosition.Y - _screen.Viewport.Y) / _screen.Viewport.Height
+               (cursorPos.X - ScreenManager.WorldViewport.X) / ScreenManager.WorldViewport.Width,
+                (cursorPos.Y - ScreenManager.WorldViewport.Y) / ScreenManager.WorldViewport.Height
             );
 
             //Convert to the virtual resolution coords
             Vector2 virtualResolutionPosition = new(
-                viewportPosition.X * _screen.GameWidth,
-                viewportPosition.Y * _screen.GameHeight
+                viewportPosition.X * ScreenManager.VirtualWidth,
+                viewportPosition.Y * ScreenManager.VirtualHeight
+            );
+
+            return virtualResolutionPosition;
+        }
+
+        public static Vector2 ConvertToUIResolution()
+        {
+            // Calculate the position within the viewport
+            Vector2 viewportPosition = new(
+               (cursorPos.X - ScreenManager.UiViewport.X) / ScreenManager.UiViewport.Width,
+                (cursorPos.Y - ScreenManager.UiViewport.Y) / ScreenManager.UiViewport.Height
+            );
+
+            //Convert to the virtual resolution coords
+            Vector2 virtualResolutionPosition = new(
+                viewportPosition.X * ScreenManager.VirtualWidth,
+                viewportPosition.Y * ScreenManager.VirtualHeight
             );
 
             return virtualResolutionPosition;
