@@ -35,7 +35,7 @@ namespace ProjectArrow.Helpers
 
         public static void DrawFilledRect(this SpriteBatch spriteBatch, Rectangle rect, Color color)
         {
-            spriteBatch.Draw(Pixel, rect,null, color, 0f, Vector2.Zero, SpriteEffects.None, 0.5f);
+            spriteBatch.Draw(Pixel, rect,null, color, 0f, Vector2.Zero, SpriteEffects.None, 0.45f);
         }
 
         public static void DrawLine(this SpriteBatch spriteBatch, Point start, Point end, Color color)
@@ -57,7 +57,7 @@ namespace ProjectArrow.Helpers
                              origin: Vector2.Zero,
                              scale: new Vector2(distance, 1.0f),
                              effects: SpriteEffects.None,
-                             layerDepth: 0.9f);
+                             layerDepth: 1f);
         }
     }   
 

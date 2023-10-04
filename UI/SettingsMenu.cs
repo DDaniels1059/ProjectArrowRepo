@@ -40,8 +40,8 @@ namespace ProjectArrow.UI
 
         public SettingsMenu()
         {
-            ScreenWidthOffset = ((int)ScreenManager.VirtualWidth / 2) - (BackDropWidth / 2);
-            ScreenHeightOffset = (int)ScreenManager.VirtualHeight + 170;
+            ScreenWidthOffset = ((int)ScreenManager.ScreenWidth / 2) - (BackDropWidth / 2);
+            ScreenHeightOffset = (int)ScreenManager.ScreenHeight + 170;
             lastScreenWidthOffset = ScreenWidthOffset;
             lastScreenHeightOffset = ScreenHeightOffset;
 
@@ -66,45 +66,55 @@ namespace ProjectArrow.UI
             DebugToggle = new Button(GameData.TextureMap["DebugButton"], GameData.TextureMap["DebugButtonPressed"], true, false, false);
             SettingsButtons.Add(DebugToggle);
 
+            AllowButtonUpdate(true);
+
             CalculateButtons();
         }
 
         public void Update(InputHelper inputHelper)
         {
-            ScreenWidthOffset = ((int)ScreenManager.VirtualWidth / 2) - (BackDropWidth / 2);
-            ScreenHeightOffset = (int)ScreenManager.VirtualHeight + 170;
+            ScreenWidthOffset = ((int)ScreenManager.ScreenWidth / 2) - (BackDropWidth / 2);
+            ScreenHeightOffset = (int)ScreenManager.ScreenHeight + 170;
 
-            //AllowButtonUpdate(true);
+
 
 
             if (inputHelper.IsKeyPress(Keys.Escape))
             {
-                AllowButtonUpdate(true);
+                //AllowButtonUpdate(true);
                 CalculateButtons();
                 isOpen = !isOpen;
 
                 if (!isOpen)
                 {
-                    AllowButtonUpdate(false);
+                    //AllowButtonUpdate(false);
                     BackDrop.Y = 0;
                 }
             }
 
             if (lastScreenWidthOffset != ScreenWidthOffset)
             {
+               // AllowButtonUpdate(true);
                 BackDropWidth = 180 * (int)GameData.UIScale;
                 BackDrop.Width = BackDropWidth;
                 BackDrop.X = ScreenWidthOffset;
                 CalculateButtons();
                 lastScreenWidthOffset = ScreenWidthOffset;
+
+                //if (!isOpen)
+                    //AllowButtonUpdate(false);
             }
 
             if (lastScreenHeightOffset != ScreenHeightOffset)
             {
-                ScreenHeightOffset = (int)ScreenManager.VirtualHeight + 170;
+                //AllowButtonUpdate(true);
+                ScreenHeightOffset = (int)ScreenManager.ScreenHeight + 170;
                 BackDrop.Height = ScreenHeightOffset;
-                lastScreenHeightOffset = ScreenHeightOffset;
                 CalculateButtons();
+                lastScreenHeightOffset = ScreenHeightOffset;
+
+                //if(!isOpen)
+                    //AllowButtonUpdate(false);
             }
 
             if (isOpen)
@@ -143,6 +153,8 @@ namespace ProjectArrow.UI
                     _spriteBatch.DrawHollowRect(UIButton.TextRectangle, Color.Red);
                     _spriteBatch.DrawHollowRect(WindowButton.TextRectangle, Color.Red);
                     _spriteBatch.DrawHollowRect(ZoomButton.TextRectangle, Color.Red);
+                    _spriteBatch.DrawHollowRect(DebugToggle.bounds, Color.Red);
+
                 }
 
                 _spriteBatch.DrawFilledRect(BackDrop, BackDropColor);
@@ -202,7 +214,7 @@ namespace ProjectArrow.UI
         #region UI Scale Buttons
         private void UIPlusPress()
         {
-            if (GameData.UIScale < 4.0f)
+            if (GameData.UIScale < 8.0f)
             {
                 GameData.UIScale += 1f;
                 UIScaleString[0] = " UI SCALE x" + GameData.UIScale.ToString() + " ";
@@ -263,9 +275,7 @@ namespace ProjectArrow.UI
                 default:
                     break;
             }
-
-            CalculateButtons();
-
+          CalculateButtons();
         }
         #endregion
 
@@ -275,7 +285,7 @@ namespace ProjectArrow.UI
             BackDrop.Width = BackDropWidth;
             BackDrop.X = ScreenWidthOffset;
 
-            int Num1 = ((int)ScreenManager.VirtualWidth / 2);
+            int Num1 = ((int)ScreenManager.ScreenWidth / 2);
             WindowButton.UpdateButtonPosition(Num1, 10 * (int)GameData.UIScale);
             UIButton.UpdateButtonPosition(Num1, (int)WindowButton.TextRectangle.Bottom + (10 * (int)GameData.UIScale));
             ZoomButton.UpdateButtonPosition(Num1, (int)UIButton.TextRectangle.Bottom + (10 * (int)GameData.UIScale));

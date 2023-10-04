@@ -17,9 +17,6 @@ namespace ProjectArrow.Helpers
         private MouseState lastMouseState = new();
         private static Vector2 cursorPos = new(0, 0);
 
-        //private float mouseClickCooldown = 0.02f;
-        //private float timeSinceLastMouseClick = 0f;
-
         private int previousScrollWheelValue;
         public int ScrollWheelValue { get; private set; }
 
@@ -58,7 +55,7 @@ namespace ProjectArrow.Helpers
             // Transform RT Mouse Position to World Space
             worldMousePosition = _camera.ScreenToCamera(ConvertToWorldResolution());
             // Screen Mouse Positon
-            screenMousePosition = ConvertToUIResolution();
+            screenMousePosition = new Vector2(cursorPos.X, cursorPos.Y);
 
         }
 
@@ -89,22 +86,22 @@ namespace ProjectArrow.Helpers
             return virtualResolutionPosition;
         }
 
-        public static Vector2 ConvertToUIResolution()
-        {
-            // Calculate the position within the viewport
-            Vector2 viewportPosition = new(
-               (cursorPos.X - ScreenManager.UiViewport.X) / ScreenManager.UiViewport.Width,
-                (cursorPos.Y - ScreenManager.UiViewport.Y) / ScreenManager.UiViewport.Height
-            );
+        //public static Vector2 ConvertToUIResolution()
+        //{
+        //    //// Calculate the position within the viewport
+        //    //Vector2 viewportPosition = new(
+        //    //   (cursorPos.X - ScreenManager.uiViewport.X) / ScreenManager.uiViewport.Width,
+        //    //    (cursorPos.Y - ScreenManager.uiViewport.Y) / ScreenManager.uiViewport.Height
+        //    //);
 
-            //Convert to the virtual resolution coords
-            Vector2 virtualResolutionPosition = new(
-                viewportPosition.X * ScreenManager.VirtualWidth,
-                viewportPosition.Y * ScreenManager.VirtualHeight
-            );
+        //    ////Convert to the virtual resolution coords
+        //    //Vector2 virtualResolutionPosition = new(
+        //    //    viewportPosition.X * ScreenManager.VirtualWidth,
+        //    //    viewportPosition.Y * ScreenManager.VirtualHeight
+        //    //);
 
-            return virtualResolutionPosition;
-        }
+        //    //return virtualResolutionPosition;
+        //}
 
         //check for keyboard key press, hold, and release
         public bool IsKeyPress(Keys key)

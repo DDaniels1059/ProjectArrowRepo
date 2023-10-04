@@ -14,23 +14,19 @@ namespace ProjectArrow.Helpers
         public static float ScreenHeight;
 
         private static float scale;
-        private static float viewWidth;
-        private static float viewHeight;
+        public static float viewWidth;
+        public static float viewHeight;
         private static float viewHeightOffset;
-        private static float viewWidthOffset;
+        public static float viewWidthOffset;
         private static bool isResizing;
-        private static RenderTarget2D mainRenderTarget;
-        private static Rectangle mainTargetDestination;
 
-        public static Viewport WorldViewport { get; private set; }
+        private static RenderTarget2D worldRenderTarget;
+        private static Rectangle worldDestination;
+        public static Viewport WorldViewport;
 
-        public static Viewport UiViewport { get; private set; }
-        private static RenderTarget2D _uiRenderTarget;
-        public static Rectangle _uiRenderTargetDestination;
         public static void Initialize()
         {
-            mainRenderTarget = new RenderTarget2D(Graphics.GraphicsDevice, VirtualWidth, VirtualHeight);
-            _uiRenderTarget = new RenderTarget2D(Graphics.GraphicsDevice, VirtualWidth, VirtualHeight);
+            worldRenderTarget = new RenderTarget2D(Graphics.GraphicsDevice, VirtualWidth, VirtualHeight);
 
             Graphics.DeviceCreated += OnGraphicsDeviceCreated;
             Graphics.DeviceReset += OnGraphicsDeviceReset;
@@ -38,7 +34,7 @@ namespace ProjectArrow.Helpers
             Window.AllowUserResizing = true;
 
             Graphics.SynchronizeWithVerticalRetrace = true;
-            Graphics.PreferredBackBufferWidth = 1280;
+            Graphics.PreferredBackBufferWidth = 1280;   
             Graphics.PreferredBackBufferHeight = 720;
             Graphics.IsFullScreen = false;
             Graphics.ApplyChanges();
@@ -61,8 +57,8 @@ namespace ProjectArrow.Helpers
             if (!isResizing)
             {
                 isResizing = true;
-                ScreenWidth = /*Math.Max(1280, */Graphics.GraphicsDevice.PresentationParameters.BackBufferWidth/*)*/;
-                ScreenHeight = /*Math.Max(720, */Graphics.GraphicsDevice.PresentationParameters.BackBufferHeight/*)*/;
+                ScreenWidth = Math.Max(1280, Graphics.GraphicsDevice.PresentationParameters.BackBufferWidth);
+                ScreenHeight = Math.Max(720, Graphics.GraphicsDevice.PresentationParameters.BackBufferHeight);
                 Graphics.PreferredBackBufferWidth = (int)ScreenWidth;
                 Graphics.PreferredBackBufferHeight = (int)ScreenHeight;
                 Graphics.ApplyChanges();
@@ -107,61 +103,55 @@ namespace ProjectArrow.Helpers
             ScreenHeight = Graphics.GraphicsDevice.PresentationParameters.BackBufferHeight;
             float scaleY = ScreenHeight / VirtualHeight;
             float scaleX = ScreenWidth / VirtualWidth;
-            scale = Math.Min(scaleX, scaleY);
-
+            scale = Math.Max(scaleX, scaleY);
+         
             // Calculate the scaled dimensions
-            viewWidth = VirtualWidth * (int)Math.Ceiling(scale);
-            viewHeight = VirtualHeight * (int)Math.Ceiling(scale);
+            viewWidth = VirtualWidth * (float)Math.Ceiling(scale);
+            viewHeight = VirtualHeight * (float)Math.Ceiling(scale);
 
             // Set the destination rectangle for rendering
-            mainTargetDestination = new Rectangle(
+            worldDestination = new Rectangle(
                 (int)((ScreenWidth - viewWidth) / 2f), // Center horizontally
                 (int)((ScreenHeight - viewHeight) / 2f), // Center vertically
                 (int)viewWidth,
                 (int)viewHeight
             );
+            WorldViewport = new Viewport(worldDestination);
 
-            WorldViewport = new Viewport(mainTargetDestination);
+        
 
-            viewHeightOffset = (ScreenHeight - viewHeight) / 2;
+            //viewHeightOffset = (ScreenHeight - viewHeight) / 2;
+            //if (viewHeightOffset < 0)
+            //    viewHeightOffset = 0;
 
-            if (viewHeightOffset < 0)
-                viewHeightOffset = 0;
+            //uiCenterDestination = new Rectangle(
+            //    (int)((ScreenWidth - viewWidth) / 2f), // Center horizontally
+            //    (int)viewHeightOffset, // Center vertically
+            //    (int)viewWidth,
+            //    (int)viewHeight
+            //);
+            //uiViewport = new Viewport(uiCenterDestination);
 
-            viewWidthOffset = (ScreenWidth - viewWidth) / 2;
 
-            if (viewWidthOffset < 0)
-                viewWidthOffset = ((ScreenWidth - viewWidth) / 2f);
-
-            _uiRenderTargetDestination = new Rectangle(
-                (int)viewWidthOffset, // Center horizontally
-                (int)viewHeightOffset, // Center vertically
-                (int)viewWidth,
-                (int)viewHeight
-            );
-
-            UiViewport = new Viewport(_uiRenderTargetDestination);
-
+            //uiCenterDestination = new Rectangle(
+            //    (int)0, // Center horizontally
+            //    (int)viewHeightOffset, // Center vertically
+            //    (int)viewWidth,
+            //    (int)viewHeight
+            //);
         }
 
         public static void WorldTargetBeginDraw()
         {
-            Graphics.GraphicsDevice.SetRenderTarget(mainRenderTarget);
+            Graphics.GraphicsDevice.SetRenderTarget(worldRenderTarget);
             Graphics.GraphicsDevice.Clear(Color.Black);
-        }
-
-        public static void UITargetBeginDraw()
-        {
-            Graphics.GraphicsDevice.SetRenderTarget(_uiRenderTarget);
-            Graphics.GraphicsDevice.Clear(Color.Transparent);
         }
 
         public static void EndTargetDraws(SpriteBatch _spriteBatch)
         {
             Graphics.GraphicsDevice.SetRenderTarget(null);
             _spriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.AlphaBlend, SamplerState.PointClamp, null, null, null, null);
-            _spriteBatch.Draw(mainRenderTarget, mainTargetDestination, Color.White);
-            _spriteBatch.Draw(_uiRenderTarget, _uiRenderTargetDestination, Color.White);
+            _spriteBatch.Draw(worldRenderTarget, worldDestination, Color.White);
             _spriteBatch.End();
         }
     }

@@ -159,22 +159,22 @@ namespace ProjectArrow.UI
             {
                 if (_isPressed)
                 {
-                    _spriteBatch.Draw(GameData.TextureAtlas, bounds, _pressedSprite, Color.White, 0f, Vector2.Zero, _flip, 1f);
+                    _spriteBatch.Draw(GameData.TextureAtlas, bounds, _pressedSprite, Color.White, 0f, Vector2.Zero, _flip, 0.5f);
                 }
                 else
                 {
-                    _spriteBatch.Draw(GameData.TextureAtlas, bounds, _defaultSprite, Color.White, 0f, Vector2.Zero, _flip, 1f);
+                    _spriteBatch.Draw(GameData.TextureAtlas, bounds, _defaultSprite, Color.White, 0f, Vector2.Zero, _flip, 0.5f);
                 }
             }
             else if (_isToggle)
             {
                 if (_toggled)
                 {
-                    _spriteBatch.Draw(GameData.TextureAtlas, bounds, _pressedSprite, Color.White, 0f, Vector2.Zero, _flip, 1f);
+                    _spriteBatch.Draw(GameData.TextureAtlas, bounds, _pressedSprite, Color.White, 0f, Vector2.Zero, _flip, 0.5f);
                 }
                 else
                 {
-                    _spriteBatch.Draw(GameData.TextureAtlas, bounds, _defaultSprite, Color.White, 0f, Vector2.Zero, _flip, 1f);
+                    _spriteBatch.Draw(GameData.TextureAtlas, bounds, _defaultSprite, Color.White, 0f, Vector2.Zero, _flip, 0.5f);
                 }
             }
 

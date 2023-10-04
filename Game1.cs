@@ -21,56 +21,6 @@ namespace ProjectArrow
         private SettingsMenu _settingsMenu;
         private Player _player;
 
-        private List<MonitorResolution> _availableResolutions;
-        private int currentResolutionIndex = 0;
-
-
-        #region Temporary Resolution Change
-
-        public struct MonitorResolution
-        {
-            public int Width;
-            public int Height;
-
-            public MonitorResolution(int width, int height)
-            {
-                Width = width;
-                Height = height;
-            }
-        }
-
-        private List<MonitorResolution> GetAvailableResolutions()
-        {
-            List<MonitorResolution> resolutions = new List<MonitorResolution>();
-
-            foreach (var displayMode in GraphicsAdapter.DefaultAdapter.SupportedDisplayModes)
-            {
-                resolutions.Add(new MonitorResolution(displayMode.Width, displayMode.Height));
-            }
-
-            return resolutions;
-        }
-
-        public void CycleResolutions(int direction)
-        {
-            if (_availableResolutions.Count == 0)
-                return;
-
-            currentResolutionIndex += direction;
-            if (currentResolutionIndex < 0)
-            {
-                currentResolutionIndex = _availableResolutions.Count - 1;
-            }
-            else if (currentResolutionIndex >= _availableResolutions.Count)
-            {
-                currentResolutionIndex = 0;
-            }
-
-            ScreenManager.SetWindowed(_availableResolutions[currentResolutionIndex].Width, _availableResolutions[currentResolutionIndex].Height);
-        }
-
-        #endregion
-
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -83,7 +33,6 @@ namespace ProjectArrow
         protected override void Initialize()
         {
             _camera = new(ScreenManager.VirtualWidth, ScreenManager.VirtualHeight);
-            _availableResolutions = GetAvailableResolutions();
             base.Initialize();
         }
 
@@ -112,13 +61,7 @@ namespace ProjectArrow
 
 
                 _inputHelper.Update(_camera);
-
-
-                if (_inputHelper.IsKeyRelease(Keys.Right))
-                    CycleResolutions(1);
-
-                if (_inputHelper.IsKeyRelease(Keys.Left))
-                    CycleResolutions(-1);
+           
 
                 if (_inputHelper.IsKeyPress(Keys.C))
                 {
@@ -173,36 +116,51 @@ namespace ProjectArrow
 
             _spriteBatch.End();
 
-
-            ScreenManager.UITargetBeginDraw();
-
-            //Draw UI
-            _spriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.AlphaBlend, SamplerState.PointClamp, null, null, null, null);
-
-                Window.Title = "ProjectArrow" + " " + (GC.GetTotalMemory(false) / 1048576f).ToString("F") + " MB";
-
-                _settingsMenu.Draw(_spriteBatch);
-
-                if (GameData.IsDebug)
-                {
-                    _spriteBatch.DrawString(GameData.GameFont, "WorldPos: " + ((int)_inputHelper.WorldMousePosition.X).ToString() + " " + ((int)_inputHelper.WorldMousePosition.Y).ToString(), new Vector2(20, (int)50), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);
-                    _spriteBatch.DrawString(GameData.GameFont, "ScreenPos: " + ((int)_inputHelper.ScreenMousePosition.X).ToString() + " " + ((int)_inputHelper.ScreenMousePosition.Y).ToString(), new Vector2(20, (int)100), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);
-                }
-
-                string textToCenter = "Paused";
-                float textSize = (int)GameData.GameFont.MeasureString(textToCenter).X * (GameData.UIScale * 2);
-
-
-                // Pause Text
-                if (!Active)
-                {
-                    _spriteBatch.DrawString(GameData.GameFont, textToCenter, new Vector2((int)(_graphics.PreferredBackBufferWidth / 2) - (textSize / 2) + 6, (_graphics.PreferredBackBufferHeight) - 148), Color.Black, 0f, Vector2.Zero, GameData.UIScale * 2, SpriteEffects.None, 1f);
-                }
-
-            _spriteBatch.End();
-
             ScreenManager.EndTargetDraws(_spriteBatch);
 
+            _spriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.AlphaBlend, SamplerState.PointClamp, null, null, null, null);
+
+            Window.Title = "ProjectArrow" + " " + (GC.GetTotalMemory(false) / 1048576f).ToString("F") + " MB";
+
+            _settingsMenu.Draw(_spriteBatch);
+
+
+            int width = (int)(64 * GameData.UIScale);
+            int height = (int)(64 * GameData.UIScale);
+
+            Rectangle rect = new Rectangle((int)(ScreenManager.ScreenWidth - (width) - 32), (int)(20 * (GameData.UIScale * 2) - height / 2), width, height);
+
+            _spriteBatch.DrawFilledRect(rect, Color.Green);
+
+            Rectangle rect2 = new Rectangle((int)(32), (int)(20 * (GameData.UIScale * 2) - height / 2), width, height);
+
+            _spriteBatch.DrawFilledRect(rect2, Color.Green);
+
+            Rectangle rect3 = new Rectangle((int)(32), (int)(ScreenManager.ScreenHeight - 20 * (GameData.UIScale * 2) - height / 2), width, height);
+
+            _spriteBatch.DrawFilledRect(rect3, Color.Green);
+
+
+            Rectangle rect4 = new Rectangle((int)(ScreenManager.ScreenWidth - (width) - 32), (int)(ScreenManager.ScreenHeight - 20 * (GameData.UIScale * 2) - height / 2), width, height);
+
+            _spriteBatch.DrawFilledRect(rect4, Color.Green);
+
+            string textToCenter = "Paused";
+            float textSize = (int)GameData.GameFont.MeasureString(textToCenter).X * (GameData.UIScale * 2);
+                
+            // Pause Text
+            if (!Active)
+            {
+                _spriteBatch.DrawString(GameData.GameFont, textToCenter, new Vector2((int)(_graphics.PreferredBackBufferWidth / 2) - (textSize / 2) + 6, (_graphics.PreferredBackBufferHeight) - 130), Color.Black, 0f, Vector2.Zero, GameData.UIScale * 2, SpriteEffects.None, 1f);
+            }
+
+            if (GameData.IsDebug)
+            {
+                _spriteBatch.DrawString(GameData.GameFont, "WorldPos: " + ((int)_inputHelper.WorldMousePosition.X).ToString() + " " + ((int)_inputHelper.WorldMousePosition.Y).ToString(), new Vector2(10, (int)10 * (GameData.UIScale)), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);
+                _spriteBatch.DrawString(GameData.GameFont, "ScreenPos: " + ((int)_inputHelper.ScreenMousePosition.X).ToString() + " " + ((int)_inputHelper.ScreenMousePosition.Y).ToString(), new Vector2(10, (int)20 * (GameData.UIScale)), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);
+            }
+
+            _spriteBatch.End();
 
             base.Draw(gameTime);
         }
