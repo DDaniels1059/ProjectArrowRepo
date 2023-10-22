@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ProjectArrow.Helpers
+namespace ProjectArrow.Utility
 {
     public static class SpriteBatchExtensions
     {
@@ -15,7 +15,7 @@ namespace ProjectArrow.Helpers
         public static void Initialize(GraphicsDevice graphicsDevice)
         {
             Pixel = new Texture2D(graphicsDevice, 1, 1);
-            Pixel.SetData<Color>(new Color[] { Color.White });
+            Pixel.SetData(new Color[] { Color.White });
         }
 
         public static void DrawHollowRect(this SpriteBatch spriteBatch, Rectangle rect, Color color)
@@ -35,7 +35,7 @@ namespace ProjectArrow.Helpers
 
         public static void DrawFilledRect(this SpriteBatch spriteBatch, Rectangle rect, Color color)
         {
-            spriteBatch.Draw(Pixel, rect,null, color, 0f, Vector2.Zero, SpriteEffects.None, 0.45f);
+            spriteBatch.Draw(Pixel, rect, null, color, 0f, Vector2.Zero, SpriteEffects.None, 0.45f);
         }
 
         public static void DrawLine(this SpriteBatch spriteBatch, Point start, Point end, Color color)
@@ -46,7 +46,7 @@ namespace ProjectArrow.Helpers
             //  Calculate distance
             float p1 = start.X - end.X;
             float p2 = start.Y - end.Y;
-            float distance = MathF.Sqrt((p1 * p1) + (p2 * p2));
+            float distance = MathF.Sqrt(p1 * p1 + p2 * p2);
 
             //  Draw the line
             spriteBatch.Draw(texture: Pixel,
@@ -59,6 +59,6 @@ namespace ProjectArrow.Helpers
                              effects: SpriteEffects.None,
                              layerDepth: 1f);
         }
-    }   
+    }
 
 }

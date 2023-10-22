@@ -2,11 +2,12 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using ProjectArrow.Helpers;
+using ProjectArrow.Utility;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using static ProjectArrow.Helpers.InputHelper;
+using static ProjectArrow.Helpers.InputManager;
 
 namespace ProjectArrow.UI
 {
@@ -15,7 +16,6 @@ namespace ProjectArrow.UI
         public Rectangle bounds;
         private Rectangle _defaultSprite;
         private Rectangle _pressedSprite;
-        public bool allowUpdate = true;
         private bool _isPressed = false;
         private bool _isToggle = false;
         private bool _isAnchoredRight = false;
@@ -71,7 +71,6 @@ namespace ProjectArrow.UI
                 _flip = SpriteEffects.None;
             }
             buttonPress = DefaultPress;
-            GameData.ButtonList.Add(this);
         }
 
         // Returns Current Toggle Bool
@@ -80,74 +79,76 @@ namespace ProjectArrow.UI
             return _toggled;
         }
 
-        //Update Each Button In Main Call By Using For Loop
-        public void Update(Vector2 VirtualMousePositon, InputHelper InputHelper, float DeltaTime)
+        // Sets Toggle Bool
+        public void SetToggleState(bool toggle)
         {
-            if (allowUpdate)
+            _toggled = toggle;
+        }
+
+        //Update Each Button In Main Call By Using For Loop
+        public void Update(Vector2 VirtualMousePositon, InputManager InputHelper, float DeltaTime)
+        {
+            //This Will Scale The Buttons Evenly By The Current UIScale
+            //We Subtract Anything That Is Not Anchored Right By TileSize So It Will Be Offset Correctly
+            //
+            _scaledWidth = (int)(_defaultSprite.Width * GameData.UIScale);
+            _scaledHeight = (int)(_defaultSprite.Height * GameData.UIScale);
+            if (!_isAnchoredRight)
             {
-                //This Will Scale The Buttons Evenly By The Current UIScale
-                //We Subtract Anything That Is Not Anchored Right By TileSize So It Will Be Offset Correctly
-                //
-                _scaledWidth = (int)(_defaultSprite.Width * GameData.UIScale);
-                _scaledHeight = (int)(_defaultSprite.Height * GameData.UIScale);
+                _offset.X = _defaultSprite.Width - _scaledWidth - GameData.UITileSize;
+            }
+            else
+            {
+                _offset.X = _defaultSprite.Width - _scaledWidth;
+            }
+
+            _offset.Y = -1 * (GameData.UIScale);
+
+            if (GameData.UIScale > 1)
+            {
+                //This Will Scale The Button To The LEFT OR RIGHT Based On The isAnchoredBool
+                //The  2 && -2 Are Just For The Scale Of The Offset. The Larger It Is, The Bigger Gap Between The Button
+                //And Whatever It's X position is Tied To, When Scaled.
                 if (!_isAnchoredRight)
                 {
-                    _offset.X = _defaultSprite.Width - _scaledWidth - GameData.TileSize;
+                    _sideAnchorOffset = (int)(-2 * GameData.UIScale) * (int)GameData.UIScale - GameData.UITileSize;
                 }
                 else
                 {
-                    _offset.X = _defaultSprite.Width - _scaledWidth;
+                    _sideAnchorOffset = (int)(2 * GameData.UIScale) * (int)GameData.UIScale;
                 }
 
-                _offset.Y = -1 * (GameData.UIScale);
+                // This Will Scale The Buttons Vertical Position :
+                // In This Case Down By An Amount that will Center It To The Text Rectangles
+                // Look In Settings Menu For Those Examples, *Please* Forgive The Messy Code
+                _verticalOffset = (int)((2 * GameData.UIScale) * (int)GameData.UIScale) - (int)GameData.UIScale * (int)GameData.UIScale + 2;
+
+                _offset.X = (_defaultSprite.Width - _scaledWidth) / 2 + _sideAnchorOffset;
+                _offset.Y =  -1 * (GameData.UIScale);
+            }
 
 
+            //This Scales Up The Button Bounds, Used For Input Detection
+            bounds.X = (int)position.X + (int)_offset.X;
+            bounds.Y = (int)position.Y + (int)_offset.Y;
+            bounds.Width = (int)_scaledWidth;
+            bounds.Height = (int)_scaledHeight;               
 
-                if (GameData.UIScale > 1)
+
+            if (bounds.Contains(VirtualMousePositon) && InputHelper.IsMouseButtonPress(MouseButtons.LeftButton))
+            {
+                _isPressed = true;
+                buttonPress?.Invoke();
+            }
+
+            if (_isPressed)
+            {
+                _timer -= .5f * DeltaTime;
+                if (_timer <= 0)
                 {
-                    //This Will Scale The Button To The LEFT OR RIGHT Based On The isAnchoredBool
-                    //The  2 && -2 Are Just For The Scale Of The Offset. The Larger It Is, The Bigger Gap Between The Button
-                    //And Whatever It's X position is Tied To, When Scaled.
-                    if (!_isAnchoredRight)
-                    {
-                        _sideAnchorOffset = (int)(-2 * GameData.UIScale) * (int)GameData.UIScale - GameData.TileSize;
-                    }
-                    else
-                    {
-                        _sideAnchorOffset = (int)(2 * GameData.UIScale) * (int)GameData.UIScale;
-                    }
-
-                    // This Will Scale The Buttons Vertical Position :
-                    // In This Case Down By An Amount that will Center It To The Text Rectangles
-                    // Look In Settings Menu For Those Examples, *Please* Forgive The Messy Code
-                    _verticalOffset = (int)((2 * GameData.UIScale) * (int)GameData.UIScale) - (int)GameData.UIScale * (int)GameData.UIScale + 2;
-
-                    _offset.X = (_defaultSprite.Width - _scaledWidth) / 2 + _sideAnchorOffset;
-                    _offset.Y =  -1 * (GameData.UIScale);
-                }
-
-
-                //This Scales Up The Button Bounds, Used For Input Detection
-                bounds.X = (int)position.X + (int)_offset.X;
-                bounds.Y = (int)position.Y + (int)_offset.Y;
-                bounds.Width = (int)_scaledWidth;
-                bounds.Height = (int)_scaledHeight;
-
-                if (bounds.Contains(VirtualMousePositon) && InputHelper.IsMouseButtonPress(MouseButtons.LeftButton))
-                {
-                    _isPressed = true;
-                    buttonPress?.Invoke();
-                }
-
-                if (_isPressed)
-                {
-                    _timer -= 400 * DeltaTime;
-                    if (_timer <= 0)
-                    {
-                        _isPressed = false;
-                        _timer = 100;
-                        //Debug.WriteLine("Button Released");
-                    }
+                    _isPressed = false;
+                    _timer = 100;
+                    //Button Released
                 }
             }
         }
@@ -159,22 +160,22 @@ namespace ProjectArrow.UI
             {
                 if (_isPressed)
                 {
-                    _spriteBatch.Draw(GameData.TextureAtlas, bounds, _pressedSprite, Color.White, 0f, Vector2.Zero, _flip, 0.5f);
+                    _spriteBatch.Draw(GameData.UIAtlas, bounds, _pressedSprite, Color.White, 0f, Vector2.Zero, _flip, 0.5f);
                 }
                 else
                 {
-                    _spriteBatch.Draw(GameData.TextureAtlas, bounds, _defaultSprite, Color.White, 0f, Vector2.Zero, _flip, 0.5f);
+                    _spriteBatch.Draw(GameData.UIAtlas, bounds, _defaultSprite, Color.White, 0f, Vector2.Zero, _flip, 0.5f);
                 }
             }
             else if (_isToggle)
             {
                 if (_toggled)
                 {
-                    _spriteBatch.Draw(GameData.TextureAtlas, bounds, _pressedSprite, Color.White, 0f, Vector2.Zero, _flip, 0.5f);
+                    _spriteBatch.Draw(GameData.UIAtlas, bounds, _pressedSprite, Color.White, 0f, Vector2.Zero, _flip, 0.5f);
                 }
                 else
                 {
-                    _spriteBatch.Draw(GameData.TextureAtlas, bounds, _defaultSprite, Color.White, 0f, Vector2.Zero, _flip, 0.5f);
+                    _spriteBatch.Draw(GameData.UIAtlas, bounds, _defaultSprite, Color.White, 0f, Vector2.Zero, _flip, 0.5f);
                 }
             }
 

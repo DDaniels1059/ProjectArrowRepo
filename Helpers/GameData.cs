@@ -1,67 +1,91 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-using ProjectArrow.Objects;
-using ProjectArrow.UI;
-using System;
+using ProjectArrow.System;
 using System.Collections.Generic;
 
 namespace ProjectArrow.Helpers
 {
     public static class GameData
     {
-        public static Dictionary<string, Rectangle> TextureMap { get; private set; }
+        public static Dictionary<string, Rectangle> ObjectMap { get; private set; }
+        public static Dictionary<string, Rectangle> UIMap { get; private set; }
         public static Dictionary<string, Rectangle> PlayerMap { get; private set; }
 
         public static SpriteFont GameFont { get; private set; }
-        public static Texture2D TextureAtlas { get; private set; }
+        public static Texture2D ObjectAtlas { get; private set; }
+        public static Texture2D UIAtlas { get; private set; }
         public static Texture2D PlayerAtlas { get; private set; }
         public static Texture2D Pixel { get; private set; }
 
-        public static int TileSize { get; private set; }
-        public static float UIScale { get; set; }
+
+        public static int ObjectTileSize { get; private set; }
+        public static int UITileSize { get; private set; }
+        public static int PlayerSize { get; private set; }
+
+
         public static bool IsDebug { get; set; }
         public static bool IsPaused { get; set; }
 
-        public static List<Button> ButtonList { get; set; }
-        public static List<GameObject> GameObjects { get; set; }
+
+        public static int UIScale { get; set; }
+        public static int CurrentZoom { get; set; }
+        public static bool AllowVysnc { get; set; }
+        public static int CurrentHz { get; set; }
+
 
         public static void LoadData(ContentManager content, GraphicsDevice graphicsDevice)
         {
-            TileSize = 16;
-            UIScale = 3f;
+            UITileSize = 16;
+            PlayerSize = 32;
+            ObjectTileSize = 32;
+
             IsDebug = false;
             IsPaused = false;
 
-            TextureAtlas = content.Load<Texture2D>("Misc/TextureAtlas");
-            TextureMap = new Dictionary<string, Rectangle>
-            {                            //X  Y  Width     Height
-                ["DebugButton"] = new Rectangle(0, 0, TileSize, TileSize),
-                ["DebugButtonPressed"] = new Rectangle(16, 0, TileSize, TileSize),
-                ["LeftArrow"] = new Rectangle(32, 0, TileSize, TileSize),
-                ["LeftArrowPressed"] = new Rectangle(48, 0, TileSize, TileSize),
-                ["Tower"] = new Rectangle(0, 32, TileSize, TileSize * 3),
-                ["PinkDebug"] = new Rectangle(0, 16, TileSize, TileSize),
-                ["Battery"] = new Rectangle(16, 16, TileSize, TileSize),
-                ["Wrench"] = new Rectangle(32, 16, TileSize, TileSize),
-                ["Gear"] = new Rectangle(48, 16, TileSize, TileSize)
+            UIScale = FileManager.CurrentSettings.UIScale;
+            AllowVysnc = FileManager.CurrentSettings.Vsync;
+            CurrentHz = FileManager.CurrentSettings.Hz;
+            CurrentZoom = FileManager.CurrentSettings.Zoom;
+
+            UIAtlas = content.Load<Texture2D>("Misc/UIAtlas");
+            UIMap = new Dictionary<string, Rectangle>
+            {                                        //X  Y  Width       Height
+                ["DebugButton"] =        new Rectangle(0, 0, UITileSize, UITileSize),
+                ["DebugButtonPressed"] = new Rectangle(16, 0, UITileSize, UITileSize),
+                ["LeftArrow"] =          new Rectangle(32, 0, UITileSize, UITileSize),
+                ["LeftArrowPressed"] =   new Rectangle(48, 0, UITileSize, UITileSize),
+                ["NonPressedButton"] =   new Rectangle(0, 16, UITileSize, UITileSize),
+                ["PressedButton"] =      new Rectangle(16, 16, UITileSize, UITileSize),
+                ["Debug"] =              new Rectangle(32, 16, UITileSize, UITileSize),
+                ["Battery"] =            new Rectangle(48, 16, UITileSize, UITileSize)
             };
 
             PlayerAtlas = content.Load<Texture2D>("Misc/PlayerAtlas");
             PlayerMap = new Dictionary<string, Rectangle>
-            {                              //X  Y  Width     Height
-                ["PlayerUp"] = new Rectangle(0, 0, TileSize * 4, TileSize),
-                ["PlayerDown"] = new Rectangle(0, 16, TileSize * 4, TileSize),
-                ["PlayerRight"] = new Rectangle(0, 32, TileSize * 4, TileSize),
-                ["PlayerLeft"] = new Rectangle(0, 48, TileSize * 4, TileSize),
+            {                                 //X  Y  Width         Height
+                ["PlayerUp"] = new Rectangle(0, 0, PlayerSize * 4, PlayerSize),
+                ["PlayerDown"] = new Rectangle(0, 32, PlayerSize * 4, PlayerSize),
+                ["PlayerRight"] = new Rectangle(0, 64, PlayerSize * 4, PlayerSize),
+                ["PlayerLeft"] = new Rectangle(0, 96, PlayerSize * 4, PlayerSize),
+
+                //["PlayerUp"] = new Rectangle(0, 0, PlayerSize * 4, PlayerSize),
+                //["PlayerDown"] = new Rectangle(0, 16, PlayerSize * 4, PlayerSize),
+                //["PlayerRight"] = new Rectangle(0, 32, PlayerSize * 4, PlayerSize),
+                //["PlayerLeft"] = new Rectangle(0, 48, PlayerSize * 4, PlayerSize),
+            };
+
+            ObjectAtlas = content.Load<Texture2D>("Misc/ObjectAtlas");
+            ObjectMap = new Dictionary<string, Rectangle>
+            {                             //X  Y  Width           Height
+                ["Battery"] = new Rectangle(0, 0, ObjectTileSize, ObjectTileSize),
+                ["Wrench"] =  new Rectangle(32, 0, ObjectTileSize, ObjectTileSize),
+                ["Gear"] =    new Rectangle(64, 0, ObjectTileSize, ObjectTileSize)
             };
 
             Pixel = new Texture2D(graphicsDevice, 1, 1);
             Pixel.SetData<Color>(new Color[] { Color.White });
             GameFont = content.Load<SpriteFont>("Misc/gameFont");
-
-            ButtonList = new List<Button>();
-            GameObjects = new List<Objects.GameObject>();
         }
     }
 }

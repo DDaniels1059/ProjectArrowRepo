@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using ProjectArrow.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace ProjectArrow.Helpers
 {
-    public class InputHelper
+    public class InputManager
     {
         private KeyboardState currentKeyboardState = new();
         private MouseState currentMouseState = new();
@@ -36,7 +37,7 @@ namespace ProjectArrow.Helpers
 
         public enum MouseButtons { LeftButton, RightButton }
 
-        public void Update(Basic2DCamera _camera)
+        public void Update(Camera2d _camera)
         {
             lastKeyboardState = currentKeyboardState;
             lastMouseState = currentMouseState;
@@ -85,23 +86,6 @@ namespace ProjectArrow.Helpers
 
             return virtualResolutionPosition;
         }
-
-        //public static Vector2 ConvertToUIResolution()
-        //{
-        //    //// Calculate the position within the viewport
-        //    //Vector2 viewportPosition = new(
-        //    //   (cursorPos.X - ScreenManager.uiViewport.X) / ScreenManager.uiViewport.Width,
-        //    //    (cursorPos.Y - ScreenManager.uiViewport.Y) / ScreenManager.uiViewport.Height
-        //    //);
-
-        //    ////Convert to the virtual resolution coords
-        //    //Vector2 virtualResolutionPosition = new(
-        //    //    viewportPosition.X * ScreenManager.VirtualWidth,
-        //    //    viewportPosition.Y * ScreenManager.VirtualHeight
-        //    //);
-
-        //    //return virtualResolutionPosition;
-        //}
 
         //check for keyboard key press, hold, and release
         public bool IsKeyPress(Keys key)

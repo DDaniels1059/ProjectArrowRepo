@@ -2,7 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 
-namespace ProjectArrow.Helpers
+namespace ProjectArrow.Utility
 {
     public class SpriteManager
     {
@@ -26,7 +26,7 @@ namespace ProjectArrow.Helpers
 
             if (TextureMap.TryGetValue(SpriteName, out var sourceRect))
             {
-                this.SourceRectangle = sourceRect;
+                SourceRectangle = sourceRect;
             }
 
             int width = SourceRectangle.Width / frames;
@@ -53,6 +53,13 @@ namespace ProjectArrow.Helpers
                 spriteBatch.Draw(TextureAtlas, Position, Rectangles[FrameIndex], color, Rotation, Origin, Scale, SpriteEffect, depth);
             }
         }
+        public void Draw(SpriteBatch spriteBatch, Vector2 position, float Depth, Color color)
+        {
+            if (SpriteName != null && Rectangles.Length > 0)
+            {
+                spriteBatch.Draw(TextureAtlas, position, Rectangles[FrameIndex], color, Rotation, Origin, Scale, SpriteEffect, Depth);
+            }
+        }
 
         public void Draw(SpriteBatch spriteBatch, float depth, float rotation)
         {
@@ -69,7 +76,7 @@ namespace ProjectArrow.Helpers
         private float _timeToUpdate;
         public bool IsLooping = true;
 
-        public int FramesPerSecond { set { _timeToUpdate = 1f / value; } }
+        public int FramesPerSecond { set { _timeToUpdate = 2f / value; } }
 
         public SpriteAnimation(Texture2D TextureAtlas, Dictionary<string, Rectangle> TextureMap, string SpriteName, int frames, int fps) : base(TextureAtlas, TextureMap, SpriteName, frames)
         {

@@ -10,8 +10,6 @@ namespace ProjectArrow.UI
     {
         public Button LeftButton; 
         public Button RightButton;
-        public string[] CenterText;
-        public bool CanDraw = false;
 
         public int currentOption = 0;
         public string currOptionString = "";

@@ -2,6 +2,8 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using ProjectArrow.Helpers;
+using ProjectArrow.System;
+using ProjectArrow.Utility;
 using System;
 using System.Collections.Generic;
 
@@ -11,16 +13,20 @@ namespace ProjectArrow.UI
     {
         private Rectangle BackDrop;
         private bool isOpen = false;
-        private Color BackDropColor = new(70, 65, 65, 230);
 
         // Set Window Display Text
         private readonly string[] WindowString = new string[3] { " WINDOWED ", " BORDERLESS ", " FULLSCREEN " };
 
         // Set Scale Display Text
-        private readonly string[] UIScaleString = new string[1] { " UI SCALE x " + GameData.UIScale.ToString() + " "};
+        private readonly string[] UIScaleString = new string[1] { " UI SCALE x" + GameData.UIScale.ToString() + " "};
 
         // Set Zoom Display Text
-        private readonly string[] ZoomString = new string[3] { " ZOOM x1 ", " ZOOM x2 ", " ZOOM x3 "};
+        private readonly string[] ZoomString = new string[1] { " ZOOM x" + GameData.CurrentZoom.ToString() + " " };
+
+        // Set Hz Display Text
+        private readonly string[] HzString = new string[1] { " " + GameData.CurrentHz.ToString() + " Hz" + " "};
+        private int[] currentHz = new int[6] {60, 75, 120, 144, 165, 240 };
+        private int currentHzIndex;
 
 
         private List<Button> SettingsButtons;
@@ -35,11 +41,17 @@ namespace ProjectArrow.UI
         private LeftRightButton WindowButton;
         private LeftRightButton UIButton;
         private LeftRightButton ZoomButton;
+        private LeftRightButton HzButton;
+
         private Button DebugToggle;
+        private Button VysncToggle;
 
 
-        public SettingsMenu()
+        public SettingsMenu(Camera2d camera)
         {
+            currentHzIndex = Array.IndexOf(currentHz, GameData.CurrentHz);
+
+
             ScreenWidthOffset = ((int)ScreenManager.ScreenWidth / 2) - (BackDropWidth / 2);
             ScreenHeightOffset = (int)ScreenManager.ScreenHeight + 170;
             lastScreenWidthOffset = ScreenWidthOffset;
@@ -48,73 +60,73 @@ namespace ProjectArrow.UI
             BackDrop = new Rectangle(ScreenWidthOffset, 0, BackDropWidth, (int)ScreenManager.ScreenHeight + 170);
             SettingsButtons = new List<Button>();
 
-            WindowButton = new(GameData.TextureMap["LeftArrow"], GameData.TextureMap["LeftArrowPressed"]);
+            WindowButton = new(GameData.UIMap["LeftArrow"], GameData.UIMap["LeftArrowPressed"]);
             WindowButton.currOptionString = WindowString[0];
             WindowButton.UpdateButtonPosition((int)(ScreenManager.ScreenWidth / 2), 0);
             WindowButton.AddToList(SettingsButtons);
 
-            UIButton = new(GameData.TextureMap["LeftArrow"], GameData.TextureMap["LeftArrowPressed"]);
+            UIButton = new(GameData.UIMap["LeftArrow"], GameData.UIMap["LeftArrowPressed"]);
             UIButton.currOptionString = UIScaleString[0];
             UIButton.UpdateButtonPosition((int)(ScreenManager.ScreenWidth / 2), 0);
             UIButton.AddToList(SettingsButtons);
 
-            ZoomButton = new(GameData.TextureMap["LeftArrow"], GameData.TextureMap["LeftArrowPressed"]);
+            ZoomButton = new(GameData.UIMap["LeftArrow"], GameData.UIMap["LeftArrowPressed"]);
             ZoomButton.currOptionString = ZoomString[0];
             ZoomButton.UpdateButtonPosition((int)(ScreenManager.ScreenWidth / 2), 0);
             ZoomButton.AddToList(SettingsButtons);
 
-            DebugToggle = new Button(GameData.TextureMap["DebugButton"], GameData.TextureMap["DebugButtonPressed"], true, false, false);
+            HzButton = new(GameData.UIMap["LeftArrow"], GameData.UIMap["LeftArrowPressed"]);
+            HzButton.currOptionString = HzString[0];
+            HzButton.UpdateButtonPosition((int)(ScreenManager.ScreenWidth / 2), 0);
+            HzButton.AddToList(SettingsButtons);    
+
+            DebugToggle = new Button(GameData.UIMap["DebugButton"], GameData.UIMap["DebugButtonPressed"], true, false, false);
             SettingsButtons.Add(DebugToggle);
 
-            AllowButtonUpdate(true);
+            VysncToggle = new Button(GameData.UIMap["NonPressedButton"], GameData.UIMap["PressedButton"], true, false, false);
+            SettingsButtons.Add(VysncToggle);
+            VysncToggle.SetToggleState(GameData.AllowVysnc);
 
             CalculateButtons();
+
+            AssignButtonFunctions(camera);
         }
 
-        public void Update(InputHelper inputHelper)
+        public void Update(InputManager inputHelper, float deltaTime)
         {
             ScreenWidthOffset = ((int)ScreenManager.ScreenWidth / 2) - (BackDropWidth / 2);
             ScreenHeightOffset = (int)ScreenManager.ScreenHeight + 170;
 
-
-
-
             if (inputHelper.IsKeyPress(Keys.Escape))
             {
-                //AllowButtonUpdate(true);
                 CalculateButtons();
                 isOpen = !isOpen;
+                GameData.IsPaused = true;
+                FileManager.SaveSettings();
+
 
                 if (!isOpen)
                 {
-                    //AllowButtonUpdate(false);
                     BackDrop.Y = 0;
+                    GameData.IsPaused = false;
                 }
             }
 
             if (lastScreenWidthOffset != ScreenWidthOffset)
             {
-               // AllowButtonUpdate(true);
                 BackDropWidth = 180 * (int)GameData.UIScale;
                 BackDrop.Width = BackDropWidth;
                 BackDrop.X = ScreenWidthOffset;
                 CalculateButtons();
                 lastScreenWidthOffset = ScreenWidthOffset;
-
-                //if (!isOpen)
-                    //AllowButtonUpdate(false);
             }
 
             if (lastScreenHeightOffset != ScreenHeightOffset)
             {
-                //AllowButtonUpdate(true);
                 ScreenHeightOffset = (int)ScreenManager.ScreenHeight + 170;
                 BackDrop.Height = ScreenHeightOffset;
                 CalculateButtons();
                 lastScreenHeightOffset = ScreenHeightOffset;
-
-                //if(!isOpen)
-                    //AllowButtonUpdate(false);
             }
 
             if (isOpen)
@@ -131,6 +143,12 @@ namespace ProjectArrow.UI
                     BackDrop.Y += (int)scrollSpeed;
                     UpdateButtonForScroll();
                 }
+
+                for (int i = 0; i < SettingsButtons.Count; i++)
+                {
+                    Button button = SettingsButtons[i];
+                    button.Update(inputHelper.ScreenMousePosition, inputHelper, deltaTime);
+                }
             }
         }
 
@@ -140,24 +158,25 @@ namespace ProjectArrow.UI
             {
                 for (int i = 0; i < SettingsButtons.Count; i++)
                 {
-                    Button button = GameData.ButtonList[i];
+                    Button button = SettingsButtons[i];
                     button.Draw(_spriteBatch);
                 }
 
                 WindowButton.DrawString(_spriteBatch);
                 ZoomButton.DrawString(_spriteBatch);
                 UIButton.DrawString(_spriteBatch);
+                HzButton.DrawString(_spriteBatch);
 
                 if (GameData.IsDebug)
                 {
                     _spriteBatch.DrawHollowRect(UIButton.TextRectangle, Color.Red);
                     _spriteBatch.DrawHollowRect(WindowButton.TextRectangle, Color.Red);
                     _spriteBatch.DrawHollowRect(ZoomButton.TextRectangle, Color.Red);
+                    _spriteBatch.DrawHollowRect(HzButton.TextRectangle, Color.Red);
                     _spriteBatch.DrawHollowRect(DebugToggle.bounds, Color.Red);
-
                 }
 
-                _spriteBatch.DrawFilledRect(BackDrop, BackDropColor);
+                _spriteBatch.DrawFilledRect(BackDrop, Color.DarkSlateGray);
             }
         }
 
@@ -176,38 +195,26 @@ namespace ProjectArrow.UI
         #endregion
 
         #region Zoom Buttons
-        private void ZoomInPress(Basic2DCamera _camera)
+        private void ZoomInPress(Camera2d _camera)
         {
-            if (_camera.Zoom.X < 4)
+            if (_camera.Zoom < 4)
             {
-                _camera.Zoom *= new Vector2(2f);
-
-                if (_camera.Zoom.X == 1f)
-                    ZoomButton.currOptionString = ZoomString[0];
-                else if (_camera.Zoom.X == 2f)
-                    ZoomButton.currOptionString = ZoomString[1];
-                else if (_camera.Zoom.X == 4f)
-                    ZoomButton.currOptionString = ZoomString[2];
-                //CalculateButtons();
-                //UpdateButtonForScroll();
+                _camera.Zoom *= 2;
+                GameData.CurrentZoom = (int)_camera.Zoom;
+                ZoomString[0] = " ZOOM x" + GameData.CurrentZoom.ToString() + " ";
+                ZoomButton.currOptionString = ZoomString[0];
             }
         }
 
-        private void ZoomOutPress(Basic2DCamera _camera)
+        private void ZoomOutPress(Camera2d _camera)
         {
-            if (_camera.Zoom.X > 1)
-                _camera.Zoom /= new Vector2(2f);
-
-            if (_camera.Zoom.X == 1f)
+            if (_camera.Zoom > 1)
+            {
+                _camera.Zoom /= 2;
+                GameData.CurrentZoom = (int)_camera.Zoom;
+                ZoomString[0] = " ZOOM x" + GameData.CurrentZoom.ToString() + " ";
                 ZoomButton.currOptionString = ZoomString[0];
-            else if (_camera.Zoom.X == 2f)
-                ZoomButton.currOptionString = ZoomString[1];
-            else if (_camera.Zoom.X == 4f)
-                ZoomButton.currOptionString = ZoomString[2];
-
-
-            //CalculateButtons();
-            //UpdateButtonForScroll();
+            }
         }
         #endregion
 
@@ -216,7 +223,7 @@ namespace ProjectArrow.UI
         {
             if (GameData.UIScale < 8.0f)
             {
-                GameData.UIScale += 1f;
+                GameData.UIScale += 1;
                 UIScaleString[0] = " UI SCALE x" + GameData.UIScale.ToString() + " ";
                 UIButton.currOptionString = UIScaleString[0];
                 BackDrop.Y = 0;
@@ -229,7 +236,7 @@ namespace ProjectArrow.UI
         {
             if (GameData.UIScale > 1.0f)
             {
-                GameData.UIScale -= 1f;
+                GameData.UIScale -= 1;
                 UIScaleString[0] = " UI SCALE x" + GameData.UIScale.ToString() + " ";
                 UIButton.currOptionString = UIScaleString[0];
                 BackDrop.Y = 0;
@@ -279,6 +286,55 @@ namespace ProjectArrow.UI
         }
         #endregion
 
+        #region HZ Buttons
+        private void HZSelectionRightPress()
+        {
+            currentHzIndex++;
+            if (currentHzIndex > currentHz.Length - 1)
+                currentHzIndex = currentHz.Length - 1;
+            ChangeHZ();
+        }
+
+        private void HZSelectionLeftPress()
+        {
+            currentHzIndex--;
+            if (currentHzIndex < 0)
+                currentHzIndex = 0; // Wrap around to fullscreen
+            ChangeHZ();
+        }
+        private void ChangeHZ()
+        {
+            int selectedHz = currentHz[currentHzIndex]; // Get the selected Hz value from the array
+            GameData.CurrentHz = selectedHz;
+            HzString[0] = " " + GameData.CurrentHz.ToString() + " Hz" + " ";
+            HzButton.currOptionString = HzString[0];
+            ScreenManager.SetHZ(selectedHz);
+            CalculateButtons();
+        }
+        #endregion
+
+        #region Vysnc Toggle
+        private void ToggleVysnc()
+        {
+            bool allow = GameData.AllowVysnc;
+
+            if (allow)
+            {
+                ScreenManager.Graphics.SynchronizeWithVerticalRetrace = false;
+                GameData.AllowVysnc = false;
+                VysncToggle.SetToggleState(false);
+                ScreenManager.Graphics.ApplyChanges();
+            }
+            else
+            {
+                ScreenManager.Graphics.SynchronizeWithVerticalRetrace = true;
+                GameData.AllowVysnc = true;
+                VysncToggle.SetToggleState(true);
+                ScreenManager.Graphics.ApplyChanges();
+            }
+        }
+        #endregion
+        
         private void CalculateButtons()
         {
             BackDropWidth = 180 * (int)GameData.UIScale; 
@@ -289,9 +345,13 @@ namespace ProjectArrow.UI
             WindowButton.UpdateButtonPosition(Num1, 10 * (int)GameData.UIScale);
             UIButton.UpdateButtonPosition(Num1, (int)WindowButton.TextRectangle.Bottom + (10 * (int)GameData.UIScale));
             ZoomButton.UpdateButtonPosition(Num1, (int)UIButton.TextRectangle.Bottom + (10 * (int)GameData.UIScale));
+            HzButton.UpdateButtonPosition(Num1, (int)ZoomButton.TextRectangle.Bottom + (10 * (int)GameData.UIScale));
 
-            DebugToggle.position.X = ZoomButton.LeftButton.position.X;
-            DebugToggle.position.Y = ZoomButton.TextRectangle.Bottom + (20 * (int)GameData.UIScale);
+            DebugToggle.position.X = HzButton.LeftButton.position.X;
+            DebugToggle.position.Y = HzButton.TextRectangle.Bottom + (20 * (int)GameData.UIScale);
+
+            VysncToggle.position.X = HzButton.LeftButton.position.X  + (20 * (int)GameData.UIScale);
+            VysncToggle.position.Y = HzButton.TextRectangle.Bottom + (20 * (int)GameData.UIScale);
         }
 
         private void UpdateButtonForScroll()
@@ -299,18 +359,13 @@ namespace ProjectArrow.UI
             WindowButton.UpdateButtonY(BackDrop.Y + 10 * (int)GameData.UIScale);
             UIButton.UpdateButtonY(WindowButton.TextRectangle.Bottom + (10 * (int)GameData.UIScale));
             ZoomButton.UpdateButtonY(UIButton.TextRectangle.Bottom + (10 * (int)GameData.UIScale));
-            DebugToggle.position.Y = ZoomButton.TextRectangle.Bottom + (20 * (int)GameData.UIScale);
+            HzButton.UpdateButtonY(ZoomButton.TextRectangle.Bottom + (10 * (int)GameData.UIScale));
+
+            DebugToggle.position.Y = HzButton.TextRectangle.Bottom + (20 * (int)GameData.UIScale);
+            VysncToggle.position.Y = HzButton.TextRectangle.Bottom + (20 * (int)GameData.UIScale);
         }
 
-        private void AllowButtonUpdate(bool allow)
-        {
-            for (int i = 0; i < SettingsButtons.Count; i++)
-            {
-                SettingsButtons[i].allowUpdate = allow;
-            }
-        }
-
-        public void AssignButtonFunctions(Basic2DCamera _camera)
+        private void AssignButtonFunctions(Camera2d _camera)
         {
             ZoomButton.RightButton.buttonPress = () => ZoomInPress(_camera);
             ZoomButton.LeftButton.buttonPress = () => ZoomOutPress( _camera);
@@ -318,9 +373,10 @@ namespace ProjectArrow.UI
             UIButton.LeftButton.buttonPress = UIMinusPress;
             WindowButton.LeftButton.buttonPress =  WindowSelectionLeftPress;
             WindowButton.RightButton.buttonPress =  WindowSelectionRightPress;
+            HzButton.LeftButton.buttonPress = HZSelectionLeftPress;
+            HzButton.RightButton.buttonPress = HZSelectionRightPress;
             DebugToggle.buttonPress += DebugPress;
+            VysncToggle.buttonPress += ToggleVysnc; 
         }
-
     }
-
 }

@@ -20,6 +20,18 @@
 /processorParam:TextureFormat=Compressed
 /build:Misc/gameFont.spritefont
 
+#begin Misc/ObjectAtlas.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Misc/ObjectAtlas.png
+
 #begin Misc/PlayerAtlas.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -32,7 +44,7 @@
 /processorParam:TextureFormat=Color
 /build:Misc/PlayerAtlas.png
 
-#begin Misc/TextureAtlas.png
+#begin Misc/Test.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -42,5 +54,17 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:Misc/TextureAtlas.png
+/build:Misc/Test.png
+
+#begin Misc/UIAtlas.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Misc/UIAtlas.png
 
