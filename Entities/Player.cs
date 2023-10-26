@@ -5,8 +5,8 @@ using Microsoft.Xna.Framework.Media;
 using Microsoft.Xna.Framework;
 using ProjectArrow.Helpers;
 using ProjectArrow.Objects;
-using System;
 using ProjectArrow.Utility;
+using System;
 
 namespace ProjectArrow
 {
@@ -23,8 +23,7 @@ namespace ProjectArrow
         private float _depth;
         private bool _isMoving = false;
 
-
-        private Vector2 _cameraPos;
+        private Vector2 targetPos;
 
         private SpriteAnimation[] _animations = new SpriteAnimation[4];
         public Vector2 Position { get { return _position; } private set { _position = value; } }
@@ -32,13 +31,13 @@ namespace ProjectArrow
 
         public Player()
         {
-            _animations[0] = new SpriteAnimation(GameData.PlayerAtlas, GameData.PlayerMap, "PlayerDown", 4, 14);
-            _animations[1] = new SpriteAnimation(GameData.PlayerAtlas, GameData.PlayerMap, "PlayerUp", 4, 14);
-            _animations[2] = new SpriteAnimation(GameData.PlayerAtlas, GameData.PlayerMap, "PlayerLeft", 4, 14);
-            _animations[3] = new SpriteAnimation(GameData.PlayerAtlas, GameData.PlayerMap, "PlayerRight", 4, 14);
+            _animations[0] = new SpriteAnimation(GameData.PlayerAtlas, GameData.PlayerMap, "PlayerDown", 4, 8);
+            _animations[1] = new SpriteAnimation(GameData.PlayerAtlas, GameData.PlayerMap, "PlayerUp", 4, 8);
+            _animations[2] = new SpriteAnimation(GameData.PlayerAtlas, GameData.PlayerMap, "PlayerLeft", 4, 8);
+            _animations[3] = new SpriteAnimation(GameData.PlayerAtlas, GameData.PlayerMap, "PlayerRight", 4, 8);
             _playerAnim = _animations[0];
             _collider = new Rectangle(0,0,GameData.PlayerSize / 2, GameData.PlayerSize / 4);
-            _position = new Vector2(700, 700);
+            _position = new Vector2(660, 765);
         }
 
         public void Update(GameTime gameTime, float deltaTime, InputManager inputHelper)
@@ -89,7 +88,6 @@ namespace ProjectArrow
                 }
             }
 
-
             _collider.X = (int)(_position.X + (GameData.PlayerSize / 4));
             _collider.Y = (int)(_position.Y + (GameData.PlayerSize / 2));
 
@@ -117,14 +115,12 @@ namespace ProjectArrow
                     break;
                 }
             }
-
-            _cameraPos.X = _position.X + (GameData.PlayerSize / 2);
-            _cameraPos.Y = _position.Y + (GameData.PlayerSize / 2);
         }
 
-        public void Draw(SpriteBatch _spriteBatch, Camera2d _camera)
+        public void Draw(SpriteBatch _spriteBatch)
         {
-            _camera.Pos = _cameraPos;
+            Vector2.Round(_position);
+
             _playerAnim.Draw(_spriteBatch, _position, _depth, Color.White);
 
             if (GameData.IsDebug)

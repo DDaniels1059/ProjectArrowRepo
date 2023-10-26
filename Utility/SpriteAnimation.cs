@@ -76,7 +76,7 @@ namespace ProjectArrow.Utility
         private float _timeToUpdate;
         public bool IsLooping = true;
 
-        public int FramesPerSecond { set { _timeToUpdate = 2f / value; } }
+        public int FramesPerSecond { set { _timeToUpdate = 1f / value; } }
 
         public SpriteAnimation(Texture2D TextureAtlas, Dictionary<string, Rectangle> TextureMap, string SpriteName, int frames, int fps) : base(TextureAtlas, TextureMap, SpriteName, frames)
         {

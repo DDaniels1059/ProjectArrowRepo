@@ -31,7 +31,7 @@ namespace ProjectArrow.Objects
 
         public virtual void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(GameData.ObjectAtlas, new Vector2(position.X, position.Y), texture, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, depth);
+            spriteBatch.Draw(GameData.ObjectAtlas, position, texture, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, depth);
 
             if (GameData.IsDebug)
             {

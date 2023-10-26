@@ -34,20 +34,20 @@ namespace ProjectArrow.Helpers
             get { return worldMousePosition; }
             private set { worldMousePosition = value; }
         }
-
         public enum MouseButtons { LeftButton, RightButton }
 
         public void Update(Camera2d _camera)
         {
+
             lastKeyboardState = currentKeyboardState;
             lastMouseState = currentMouseState;
 
             currentKeyboardState = Keyboard.GetState();
             currentMouseState = Mouse.GetState();
 
-            //track cursor position
             cursorPos.X = currentMouseState.X;
             cursorPos.Y = currentMouseState.Y;
+
 
             previousScrollWheelValue = ScrollWheelValue;
             ScrollWheelValue = (int)(currentMouseState.ScrollWheelValue);

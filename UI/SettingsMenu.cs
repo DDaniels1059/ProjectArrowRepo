@@ -35,7 +35,7 @@ namespace ProjectArrow.UI
         private int ScreenWidthOffset;
         private int ScreenHeightOffset;
         private int BackDropWidth = 150;
-        private float scrollSpeed = 17f; // Adjust the scroll speed as needed
+        private float scrollSpeed = 5f;
 
 
         private LeftRightButton WindowButton;
@@ -43,9 +43,8 @@ namespace ProjectArrow.UI
         private LeftRightButton ZoomButton;
         private LeftRightButton HzButton;
 
-        private Button DebugToggle;
-        private Button VysncToggle;
-
+        private TextButton DebugToggle;
+        private TextButton VsyncToggle;
 
         public SettingsMenu(Camera2d camera)
         {
@@ -53,7 +52,7 @@ namespace ProjectArrow.UI
 
 
             ScreenWidthOffset = ((int)ScreenManager.ScreenWidth / 2) - (BackDropWidth / 2);
-            ScreenHeightOffset = (int)ScreenManager.ScreenHeight + 170;
+            ScreenHeightOffset = (int)ScreenManager.ScreenHeight + (170 * GameData.UIScale);
             lastScreenWidthOffset = ScreenWidthOffset;
             lastScreenHeightOffset = ScreenHeightOffset;
 
@@ -80,22 +79,23 @@ namespace ProjectArrow.UI
             HzButton.UpdateButtonPosition((int)(ScreenManager.ScreenWidth / 2), 0);
             HzButton.AddToList(SettingsButtons);    
 
-            DebugToggle = new Button(GameData.UIMap["DebugButton"], GameData.UIMap["DebugButtonPressed"], true, false, false);
-            SettingsButtons.Add(DebugToggle);
+            DebugToggle = new TextButton(GameData.UIMap["DebugButton"], GameData.UIMap["DebugButtonPressed"], true, " DEBUG ");
+            DebugToggle.AddToList(SettingsButtons);
 
-            VysncToggle = new Button(GameData.UIMap["NonPressedButton"], GameData.UIMap["PressedButton"], true, false, false);
-            SettingsButtons.Add(VysncToggle);
-            VysncToggle.SetToggleState(GameData.AllowVysnc);
+
+            VsyncToggle = new TextButton(GameData.UIMap["NonPressedButton"], GameData.UIMap["PressedButton"], true, " VSYNC ");
+            VsyncToggle.AddToList(SettingsButtons);
+            VsyncToggle.Button.SetToggleState(GameData.AllowVysnc);
+
 
             CalculateButtons();
-
             AssignButtonFunctions(camera);
         }
 
         public void Update(InputManager inputHelper, float deltaTime)
         {
             ScreenWidthOffset = ((int)ScreenManager.ScreenWidth / 2) - (BackDropWidth / 2);
-            ScreenHeightOffset = (int)ScreenManager.ScreenHeight + 170;
+            ScreenHeightOffset = (int)ScreenManager.ScreenHeight + (170 * GameData.UIScale);
 
             if (inputHelper.IsKeyPress(Keys.Escape))
             {
@@ -114,7 +114,7 @@ namespace ProjectArrow.UI
 
             if (lastScreenWidthOffset != ScreenWidthOffset)
             {
-                BackDropWidth = 180 * (int)GameData.UIScale;
+                BackDropWidth = 180 * GameData.UIScale;
                 BackDrop.Width = BackDropWidth;
                 BackDrop.X = ScreenWidthOffset;
                 CalculateButtons();
@@ -123,7 +123,7 @@ namespace ProjectArrow.UI
 
             if (lastScreenHeightOffset != ScreenHeightOffset)
             {
-                ScreenHeightOffset = (int)ScreenManager.ScreenHeight + 170;
+                ScreenHeightOffset = (int)ScreenManager.ScreenHeight + (170 * GameData.UIScale);
                 BackDrop.Height = ScreenHeightOffset;
                 CalculateButtons();
                 lastScreenHeightOffset = ScreenHeightOffset;
@@ -132,15 +132,15 @@ namespace ProjectArrow.UI
             if (isOpen)
             {
                 // Check if the scroll wheel is actively being scrolled up
-                if (inputHelper.IsScrollingUp() && BackDrop.Y > -150)
+                if (inputHelper.IsScrollingUp() && BackDrop.Y > (-150 * GameData.UIScale))
                 {
-                    BackDrop.Y -= (int)scrollSpeed;
+                    BackDrop.Y -= (int)scrollSpeed * GameData.UIScale;
                     UpdateButtonForScroll();
                 }
                 // Check if the scroll wheel is actively being scrolled down
                 else if (inputHelper.IsScrollingDown() && BackDrop.Y < 0)
                 {
-                    BackDrop.Y += (int)scrollSpeed;
+                    BackDrop.Y += (int)scrollSpeed * GameData.UIScale;
                     UpdateButtonForScroll();
                 }
 
@@ -166,6 +166,8 @@ namespace ProjectArrow.UI
                 ZoomButton.DrawString(_spriteBatch);
                 UIButton.DrawString(_spriteBatch);
                 HzButton.DrawString(_spriteBatch);
+                VsyncToggle.DrawString(_spriteBatch);
+                DebugToggle.DrawString(_spriteBatch);
 
                 if (GameData.IsDebug)
                 {
@@ -173,7 +175,8 @@ namespace ProjectArrow.UI
                     _spriteBatch.DrawHollowRect(WindowButton.TextRectangle, Color.Red);
                     _spriteBatch.DrawHollowRect(ZoomButton.TextRectangle, Color.Red);
                     _spriteBatch.DrawHollowRect(HzButton.TextRectangle, Color.Red);
-                    _spriteBatch.DrawHollowRect(DebugToggle.bounds, Color.Red);
+                    _spriteBatch.DrawHollowRect(VsyncToggle.TextRectangle, Color.Red);
+                    _spriteBatch.DrawHollowRect(DebugToggle.TextRectangle, Color.Red);
                 }
 
                 _spriteBatch.DrawFilledRect(BackDrop, Color.DarkSlateGray);
@@ -183,7 +186,7 @@ namespace ProjectArrow.UI
         #region Debug Toggle
         private void DebugPress()
         {
-            if (!DebugToggle.GetToggleState())
+            if (!DebugToggle.Button.GetToggleState())
             {
                 GameData.IsDebug = false;
             }
@@ -310,11 +313,12 @@ namespace ProjectArrow.UI
             HzButton.currOptionString = HzString[0];
             ScreenManager.SetHZ(selectedHz);
             CalculateButtons();
+            UpdateButtonForScroll();
         }
         #endregion
 
         #region Vysnc Toggle
-        private void ToggleVysnc()
+        private void ToggleVsync()
         {
             bool allow = GameData.AllowVysnc;
 
@@ -322,14 +326,16 @@ namespace ProjectArrow.UI
             {
                 ScreenManager.Graphics.SynchronizeWithVerticalRetrace = false;
                 GameData.AllowVysnc = false;
-                VysncToggle.SetToggleState(false);
+                VsyncToggle.Button.SetToggleState(false);
+                //VsyncToggle.TextColor = Color.DarkRed;
                 ScreenManager.Graphics.ApplyChanges();
             }
             else
             {
                 ScreenManager.Graphics.SynchronizeWithVerticalRetrace = true;
                 GameData.AllowVysnc = true;
-                VysncToggle.SetToggleState(true);
+                VsyncToggle.Button.SetToggleState(true);
+                //VsyncToggle.TextColor = Color.MediumSeaGreen;
                 ScreenManager.Graphics.ApplyChanges();
             }
         }
@@ -346,12 +352,8 @@ namespace ProjectArrow.UI
             UIButton.UpdateButtonPosition(Num1, (int)WindowButton.TextRectangle.Bottom + (10 * (int)GameData.UIScale));
             ZoomButton.UpdateButtonPosition(Num1, (int)UIButton.TextRectangle.Bottom + (10 * (int)GameData.UIScale));
             HzButton.UpdateButtonPosition(Num1, (int)ZoomButton.TextRectangle.Bottom + (10 * (int)GameData.UIScale));
-
-            DebugToggle.position.X = HzButton.LeftButton.position.X;
-            DebugToggle.position.Y = HzButton.TextRectangle.Bottom + (20 * (int)GameData.UIScale);
-
-            VysncToggle.position.X = HzButton.LeftButton.position.X  + (20 * (int)GameData.UIScale);
-            VysncToggle.position.Y = HzButton.TextRectangle.Bottom + (20 * (int)GameData.UIScale);
+            VsyncToggle.UpdateButtonPosition(Num1, (int)HzButton.TextRectangle.Bottom + (20 * (int)GameData.UIScale), - 32 * GameData.UIScale);
+            DebugToggle.UpdateButtonPosition(Num1, (int)VsyncToggle.TextRectangle.Bottom + (20 * (int)GameData.UIScale), -32 * GameData.UIScale);
         }
 
         private void UpdateButtonForScroll()
@@ -360,9 +362,8 @@ namespace ProjectArrow.UI
             UIButton.UpdateButtonY(WindowButton.TextRectangle.Bottom + (10 * (int)GameData.UIScale));
             ZoomButton.UpdateButtonY(UIButton.TextRectangle.Bottom + (10 * (int)GameData.UIScale));
             HzButton.UpdateButtonY(ZoomButton.TextRectangle.Bottom + (10 * (int)GameData.UIScale));
-
-            DebugToggle.position.Y = HzButton.TextRectangle.Bottom + (20 * (int)GameData.UIScale);
-            VysncToggle.position.Y = HzButton.TextRectangle.Bottom + (20 * (int)GameData.UIScale);
+            VsyncToggle.UpdateButtonY(HzButton.TextRectangle.Bottom + (20 * (int)GameData.UIScale));
+            DebugToggle.UpdateButtonY(VsyncToggle.TextRectangle.Bottom + (20 * (int)GameData.UIScale));
         }
 
         private void AssignButtonFunctions(Camera2d _camera)
@@ -375,8 +376,8 @@ namespace ProjectArrow.UI
             WindowButton.RightButton.buttonPress =  WindowSelectionRightPress;
             HzButton.LeftButton.buttonPress = HZSelectionLeftPress;
             HzButton.RightButton.buttonPress = HZSelectionRightPress;
-            DebugToggle.buttonPress += DebugPress;
-            VysncToggle.buttonPress += ToggleVysnc; 
+            DebugToggle.Button.buttonPress += DebugPress;
+            VsyncToggle.Button.buttonPress += ToggleVsync; 
         }
     }
 }

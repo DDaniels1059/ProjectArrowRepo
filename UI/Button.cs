@@ -13,7 +13,7 @@ namespace ProjectArrow.UI
 {
     public class Button
     {
-        public Rectangle bounds;
+        public Rectangle Bounds;
         private Rectangle _defaultSprite;
         private Rectangle _pressedSprite;
         private bool _isPressed = false;
@@ -41,8 +41,6 @@ namespace ProjectArrow.UI
         //but this allows it to be a bit cleaner.
         private void DefaultPress()
         {
-            Debug.WriteLine("Button Pressed");
-
             if (_isToggle)
             {
                 if (_toggled == true)
@@ -129,13 +127,13 @@ namespace ProjectArrow.UI
 
 
             //This Scales Up The Button Bounds, Used For Input Detection
-            bounds.X = (int)position.X + (int)_offset.X;
-            bounds.Y = (int)position.Y + (int)_offset.Y;
-            bounds.Width = (int)_scaledWidth;
-            bounds.Height = (int)_scaledHeight;               
+            Bounds.X = (int)position.X + (int)_offset.X;
+            Bounds.Y = (int)position.Y + (int)_offset.Y;
+            Bounds.Width = (int)_scaledWidth;
+            Bounds.Height = (int)_scaledHeight;               
 
 
-            if (bounds.Contains(VirtualMousePositon) && InputHelper.IsMouseButtonPress(MouseButtons.LeftButton))
+            if (Bounds.Contains(VirtualMousePositon) && InputHelper.IsMouseButtonPress(MouseButtons.LeftButton))
             {
                 _isPressed = true;
                 buttonPress?.Invoke();
@@ -143,7 +141,7 @@ namespace ProjectArrow.UI
 
             if (_isPressed)
             {
-                _timer -= .5f * DeltaTime;
+                _timer -= 0.5f * DeltaTime;
                 if (_timer <= 0)
                 {
                     _isPressed = false;
@@ -160,27 +158,27 @@ namespace ProjectArrow.UI
             {
                 if (_isPressed)
                 {
-                    _spriteBatch.Draw(GameData.UIAtlas, bounds, _pressedSprite, Color.White, 0f, Vector2.Zero, _flip, 0.5f);
+                    _spriteBatch.Draw(GameData.UIAtlas, Bounds, _pressedSprite, Color.White, 0f, Vector2.Zero, _flip, 0.5f);
                 }
                 else
                 {
-                    _spriteBatch.Draw(GameData.UIAtlas, bounds, _defaultSprite, Color.White, 0f, Vector2.Zero, _flip, 0.5f);
+                    _spriteBatch.Draw(GameData.UIAtlas, Bounds, _defaultSprite, Color.White, 0f, Vector2.Zero, _flip, 0.5f);
                 }
             }
             else if (_isToggle)
             {
                 if (_toggled)
                 {
-                    _spriteBatch.Draw(GameData.UIAtlas, bounds, _pressedSprite, Color.White, 0f, Vector2.Zero, _flip, 0.5f);
+                    _spriteBatch.Draw(GameData.UIAtlas, Bounds, _pressedSprite, Color.White, 0f, Vector2.Zero, _flip, 0.5f);
                 }
                 else
                 {
-                    _spriteBatch.Draw(GameData.UIAtlas, bounds, _defaultSprite, Color.White, 0f, Vector2.Zero, _flip, 0.5f);
+                    _spriteBatch.Draw(GameData.UIAtlas, Bounds, _defaultSprite, Color.White, 0f, Vector2.Zero, _flip, 0.5f);
                 }
             }
 
             if (GameData.IsDebug)
-                _spriteBatch.DrawHollowRect(bounds, Color.Red);
+                _spriteBatch.DrawHollowRect(Bounds, Color.Red);
         }
     }
 }

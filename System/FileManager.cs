@@ -67,8 +67,13 @@ namespace ProjectArrow.System
                 Hz = GameData.CurrentHz
             };
 
-            var jsonString = JsonSerializer.Serialize(settings, _options);
-            File.WriteAllText(saveFilePath, jsonString);
+            // Use a using statement to create and manage the FileStream
+            using (FileStream fs = new FileStream(saveFilePath, FileMode.Create, FileAccess.Write))
+            {
+                var jsonString = JsonSerializer.Serialize(settings, _options);
+                byte[] info = new UTF8Encoding(true).GetBytes(jsonString);
+                fs.Write(info, 0, info.Length);
+            }
         }
     }
 }

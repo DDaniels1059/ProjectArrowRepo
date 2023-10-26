@@ -7,11 +7,14 @@ using ProjectArrow.System;
 using ProjectArrow.UI;
 using ProjectArrow.Utility;
 using System;
+using System.Diagnostics;
+using System.Threading;
 
 namespace ProjectArrow
 {
     public class Game1 : Game
     {
+        private FpsMonitor FPSM = new FpsMonitor();
         private GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
         private InputManager inputHelper;
@@ -20,22 +23,25 @@ namespace ProjectArrow
         private Player player;
 
 
-        private float _frameRate;
-        private Vector2 test = new Vector2(1100,900);
         private bool testSwitch = false;
         private SpriteAnimation[] _testAnimations = new SpriteAnimation[2];
         private SpriteAnimation _testAnim;
-        private Texture2D _testTexture;
+
+        private Vector2 test = new Vector2(1100, 900);
+
+        private int _testIndex = 0;
 
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
+            InactiveSleepTime = TimeSpan.Zero;
+            graphics.ApplyChanges();
         }
 
         protected override void Initialize()
-        { 
+        {
             base.Initialize();
         }
 
@@ -45,26 +51,27 @@ namespace ProjectArrow
             ScreenManager.Initialize(graphics, Window, this);
             SpriteBatchExtensions.Initialize(GraphicsDevice);
             GameData.LoadData(Content, GraphicsDevice);
-            ScreenManager.SetHZ(GameData.CurrentHz);
 
+            //Not The Best Way
+            //ScreenManager.SetHZ(GameData.CurrentHz);
+            
             playerCamera.Zoom = GameData.CurrentZoom;
             spriteBatch = new SpriteBatch(GraphicsDevice);
             settingsMenu = new SettingsMenu(playerCamera);
             inputHelper = new InputManager();
             player = new Player();
 
-            _testTexture = Content.Load<Texture2D>("Misc/Test");
-
             ObjectManager.Initialize(spriteBatch);
 
-            Battery Batt1 = new (new Vector2(300, 320));
-            Battery Batt2 = new (new Vector2(330, 320));
-            Battery Batt3 = new(new Vector2(20, 320));
-            Battery Batt4 = new(new Vector2(610, 320));
 
 
-            _testAnimations[0] = new SpriteAnimation(GameData.PlayerAtlas, GameData.PlayerMap, "PlayerLeft", 4, 11);
-            _testAnimations[1] = new SpriteAnimation(GameData.PlayerAtlas, GameData.PlayerMap, "PlayerRight", 4, 11);
+            Battery batt1 = new Battery(new Vector2(700, 600));
+            Battery batt2 = new Battery(new Vector2(500, 600));
+            Battery batt3 = new Battery(new Vector2(600, 600));
+            Battery batt4 = new Battery(new Vector2(800, 600));
+
+            _testAnimations[0] = new SpriteAnimation(GameData.PlayerAtlas, GameData.PlayerMap, "PlayerLeft", 4, 5);
+            _testAnimations[1] = new SpriteAnimation(GameData.PlayerAtlas, GameData.PlayerMap, "PlayerRight", 4, 5);
             _testAnim = _testAnimations[0];
         }
 
@@ -74,19 +81,23 @@ namespace ProjectArrow
             inputHelper.Update(playerCamera);
 
 
+            _testIndex += 1;
+
             if (inputHelper.IsKeyPress(Keys.C))
             {
-                GC.Collect();
+                //GC.Collect();
+
+                _testIndex = 0;
             }
 
             if (!GameData.IsPaused)
             {
                 ObjectManager.UpdateObjects();
-                player.Update(gameTime, deltatime, inputHelper);
             }
 
+            player.Update(gameTime, deltatime, inputHelper);
 
-            float speed = 0.06f;
+            float speed = 0.04f;
 
             if (!testSwitch)
             {
@@ -121,12 +132,15 @@ namespace ProjectArrow
             _testAnim.Position.Y = test.Y;
             _testAnim.Update(gameTime);
 
+
             settingsMenu.Update(inputHelper, deltatime);
 
 
-            _frameRate = 1 / (float)gameTime.ElapsedGameTime.TotalSeconds;
+            //playerCamera.Follow(player.Position);
 
+            FPSM.Update();
             base.Update(gameTime);
+
         }
 
         protected override void Draw(GameTime gameTime)
@@ -138,16 +152,34 @@ namespace ProjectArrow
             spriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.AlphaBlend, SamplerState.PointClamp, null, null, null, transformMatrix: playerCamera.get_transformation(GraphicsDevice));
 
 
-                spriteBatch.Draw(_testTexture, new Vector2(0,0),null, Color.White, 0f, Vector2.Zero, 2f, SpriteEffects.None, 0.000001f);
-                
-                player.Draw(spriteBatch, playerCamera);
-                spriteBatch.Draw(GameData.Pixel, new Rectangle(-1500, 0, 3000, 3000), null, Color.DimGray, 0f, Vector2.Zero, SpriteEffects.None, 0f);
+                    player.Draw(spriteBatch);
+                    Vector2 camPos = player.Position;
+                    playerCamera._pos = camPos;
+
+
                 ObjectManager.DrawObjects();
                 
-                _testAnim.Draw(spriteBatch, test, 1f, Color.DarkGreen);
+                _testAnim.Draw(spriteBatch, new Vector2(test.X, test.Y - 20), 1f, Color.DarkGreen);
                 _testAnim.Draw(spriteBatch, new Vector2(test.X, test.Y + 120), 1f, Color.Crimson);
                 _testAnim.Draw(spriteBatch, new Vector2(test.X, test.Y + 70), 1f, Color.CornflowerBlue);
                 _testAnim.Draw(spriteBatch, new Vector2(test.X, test.Y + 35), 1f, Color.BlueViolet);
+
+
+
+            //Nested for loops to draw the grid ONLY FOR TESTING
+            for (int row = 0; row < 25; row++)
+                {
+                    for (int col = 0; col < 25; col++)
+                    {
+                        // Calculate the position for each tile
+                        int x = col * GameData.ObjectTileSize;
+                        int y = row * GameData.ObjectTileSize;
+
+                        // Draw the Battery tile at the calculated position
+                        spriteBatch.Draw(GameData.ObjectAtlas, new Vector2(x, y), GameData.ObjectMap["Grass"], Color.Gray, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+                    }
+                }
+
 
             spriteBatch.End();
 
@@ -165,11 +197,12 @@ namespace ProjectArrow
 
                 if (GameData.IsDebug)
                 {
+                    spriteBatch.DrawString(GameData.GameFont, "CameraPos: " + (playerCamera._pos.X).ToString() + " " + (playerCamera._pos.Y).ToString(), new Vector2(10, (int)1 * (GameData.UIScale)), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);
                     spriteBatch.DrawString(GameData.GameFont, "WorldPos: " + ((int)inputHelper.WorldMousePosition.X).ToString() + " " + ((int)inputHelper.WorldMousePosition.Y).ToString(), new Vector2(10, (int)10 * (GameData.UIScale)), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);
                     spriteBatch.DrawString(GameData.GameFont, "ScreenPos: " + ((int)inputHelper.ScreenMousePosition.X).ToString() + " " + ((int)inputHelper.ScreenMousePosition.Y).ToString(), new Vector2(10, (int)20 * (GameData.UIScale)), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);
-                    spriteBatch.DrawString(GameData.GameFont, "FPS: " + _frameRate.ToString(), new Vector2(10, (int)30 * (GameData.UIScale)), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);
+                    FPSM.Draw(spriteBatch, GameData.GameFont, new Vector2(10, (int)30 * (GameData.UIScale)), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);
+                    spriteBatch.DrawString(GameData.GameFont, "Test Increment: " + (_testIndex).ToString() , new Vector2(10, (int)40 * (GameData.UIScale)), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);              
                 }
-
 
             spriteBatch.End();
 

@@ -44,18 +44,6 @@
 /processorParam:TextureFormat=Color
 /build:Misc/PlayerAtlas.png
 
-#begin Misc/Test.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Misc/Test.png
-
 #begin Misc/UIAtlas.png
 /importer:TextureImporter
 /processor:TextureProcessor

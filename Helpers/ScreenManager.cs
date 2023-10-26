@@ -9,8 +9,8 @@ namespace ProjectArrow.Helpers
         public static GraphicsDeviceManager Graphics;
         public static GameWindow Window;
         public static Game Game;
-        public static int VirtualWidth = 1920;
-        public static int VirtualHeight = 1080;
+        public static int VirtualWidth = 640;
+        public static int VirtualHeight = 360;
         public static float ScreenWidth;
         public static float ScreenHeight;
 
@@ -62,8 +62,8 @@ namespace ProjectArrow.Helpers
             if (!isResizing)
             {
                 isResizing = true;
-                ScreenWidth = /*Math.Max(1280, */Graphics.GraphicsDevice.PresentationParameters.BackBufferWidth/*)*/;
-                ScreenHeight = /*Math.Max(720, */Graphics.GraphicsDevice.PresentationParameters.BackBufferHeight/*)*/;
+                ScreenWidth = Math.Max(640, Graphics.GraphicsDevice.PresentationParameters.BackBufferWidth);
+                ScreenHeight = Math.Max(360, Graphics.GraphicsDevice.PresentationParameters.BackBufferHeight);
                 Graphics.PreferredBackBufferWidth = (int)ScreenWidth;
                 Graphics.PreferredBackBufferHeight = (int)ScreenHeight;
                 Graphics.ApplyChanges();
@@ -74,7 +74,7 @@ namespace ProjectArrow.Helpers
         public static void SetHZ(float hz)
         {
             GameData.CurrentHz = (int)hz;
-            Game.TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0f / hz);
+            Game.TargetElapsedTime = TimeSpan.FromTicks((long)(TimeSpan.TicksPerSecond / hz));
             Graphics.ApplyChanges();
         }
 
@@ -119,8 +119,8 @@ namespace ProjectArrow.Helpers
 
              scale = Math.Max((int)Math.Ceiling(scaleX), (int)Math.Ceiling(scaleY));
 
-            if (scale <= 1)
-                scale = 2; // Ensure a minimum scale of 2
+            //if (scale <= 1)
+            //    scale = 2; // Ensure a minimum scale of 2
 
             // Update the view dimensions based on the calculated scale
             viewWidth = VirtualWidth * scale;
@@ -140,7 +140,7 @@ namespace ProjectArrow.Helpers
         public static void WorldTargetBeginDraw()
         {
             Graphics.GraphicsDevice.SetRenderTarget(worldRenderTarget);
-            Graphics.GraphicsDevice.Clear(Color.Black);
+            Graphics.GraphicsDevice.Clear(Color.Gray);
         }
 
         public static void EndTargetDraws(SpriteBatch _spriteBatch)

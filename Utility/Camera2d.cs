@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using ProjectArrow.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,11 +23,10 @@ namespace ProjectArrow.Utility
             _pos = Vector2.Zero;
         }
 
-        // Sets and gets zoom
         public float Zoom
         {
             get { return _zoom; }
-            set { _zoom = value; if (_zoom < 0.1f) _zoom = 0.1f; } // Negative zoom will flip image
+            set { _zoom = value; if (_zoom < 0.1f) _zoom = 0.1f; } 
         }
 
         public float Rotation
@@ -35,17 +35,25 @@ namespace ProjectArrow.Utility
             set { _rotation = value; }
         }
 
-        // Auxiliary function to move the camera
         public void Move(Vector2 amount)
         {
             _pos += amount;
         }
 
-        // Get set position
         public Vector2 Pos
         {
             get { return _pos; }
             set { _pos = value; }
+        }
+
+        //Testing A Simpler way to update cam
+        public void Follow(Vector2 followPos)
+        {
+            var position = Matrix.CreateTranslation(-followPos.X - (GameData.PlayerSize / 2), -followPos.Y - (GameData.PlayerSize / 2), 0);
+
+            var offset = Matrix.CreateTranslation(ScreenManager.ScreenWidth * 0.25f, ScreenManager.ScreenHeight * 0.25f, 0);
+
+            _transform = position *  offset;
         }
 
         public Vector2 ScreenToCamera(Vector2 screenPosition)
@@ -55,8 +63,7 @@ namespace ProjectArrow.Utility
 
         public Matrix get_transformation(GraphicsDevice graphicsDevice)
         {
-            _transform =       // Thanks to o KB o for this solution
-              Matrix.CreateTranslation(new Vector3(-_pos.X, -_pos.Y, 0)) *
+            _transform =  Matrix.CreateTranslation(new Vector3(-_pos.X, -_pos.Y, 0)) *
                                          Matrix.CreateRotationZ(Rotation) *
                                          Matrix.CreateScale(new Vector3(Zoom, Zoom, 1)) *
                                          Matrix.CreateTranslation(new Vector3(graphicsDevice.Viewport.Width * 0.5f, graphicsDevice.Viewport.Height * 0.5f, 0));

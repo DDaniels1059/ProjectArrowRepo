@@ -50,15 +50,13 @@ namespace ProjectArrow.Helpers
 
             UIAtlas = content.Load<Texture2D>("Misc/UIAtlas");
             UIMap = new Dictionary<string, Rectangle>
-            {                                        //X  Y  Width       Height
-                ["DebugButton"] =        new Rectangle(0, 0, UITileSize, UITileSize),
+            {                                 //X  Y  Width       Height
+                ["DebugButton"] = new Rectangle(0, 0, UITileSize, UITileSize),
                 ["DebugButtonPressed"] = new Rectangle(16, 0, UITileSize, UITileSize),
-                ["LeftArrow"] =          new Rectangle(32, 0, UITileSize, UITileSize),
-                ["LeftArrowPressed"] =   new Rectangle(48, 0, UITileSize, UITileSize),
-                ["NonPressedButton"] =   new Rectangle(0, 16, UITileSize, UITileSize),
-                ["PressedButton"] =      new Rectangle(16, 16, UITileSize, UITileSize),
-                ["Debug"] =              new Rectangle(32, 16, UITileSize, UITileSize),
-                ["Battery"] =            new Rectangle(48, 16, UITileSize, UITileSize)
+                ["LeftArrow"] = new Rectangle(32, 0, UITileSize, UITileSize),
+                ["LeftArrowPressed"] = new Rectangle(48, 0, UITileSize, UITileSize),
+                ["NonPressedButton"] = new Rectangle(0, 16, UITileSize, UITileSize),
+                ["PressedButton"] = new Rectangle(16, 16, UITileSize, UITileSize)
             };
 
             PlayerAtlas = content.Load<Texture2D>("Misc/PlayerAtlas");
@@ -68,18 +66,13 @@ namespace ProjectArrow.Helpers
                 ["PlayerDown"] = new Rectangle(0, 32, PlayerSize * 4, PlayerSize),
                 ["PlayerRight"] = new Rectangle(0, 64, PlayerSize * 4, PlayerSize),
                 ["PlayerLeft"] = new Rectangle(0, 96, PlayerSize * 4, PlayerSize),
-
-                //["PlayerUp"] = new Rectangle(0, 0, PlayerSize * 4, PlayerSize),
-                //["PlayerDown"] = new Rectangle(0, 16, PlayerSize * 4, PlayerSize),
-                //["PlayerRight"] = new Rectangle(0, 32, PlayerSize * 4, PlayerSize),
-                //["PlayerLeft"] = new Rectangle(0, 48, PlayerSize * 4, PlayerSize),
             };
 
             ObjectAtlas = content.Load<Texture2D>("Misc/ObjectAtlas");
             ObjectMap = new Dictionary<string, Rectangle>
             {                             //X  Y  Width           Height
-                ["Battery"] = new Rectangle(0, 0, ObjectTileSize, ObjectTileSize),
-                ["Wrench"] =  new Rectangle(32, 0, ObjectTileSize, ObjectTileSize),
+                ["Grass"] = new Rectangle(0, 0, ObjectTileSize, ObjectTileSize),
+                ["Box"] =  new Rectangle(32, 0, ObjectTileSize, ObjectTileSize),
                 ["Gear"] =    new Rectangle(64, 0, ObjectTileSize, ObjectTileSize)
             };
 
