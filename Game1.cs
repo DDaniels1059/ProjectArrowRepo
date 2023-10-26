@@ -37,6 +37,7 @@ namespace ProjectArrow
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
             InactiveSleepTime = TimeSpan.Zero;
+            //TargetElapsedTime = TimeSpan.FromTicks((long)(TimeSpan.TicksPerSecond / 60));
             graphics.ApplyChanges();
         }
 
@@ -138,6 +139,10 @@ namespace ProjectArrow
 
             //playerCamera.Follow(player.Position);
 
+
+            Vector2 camPos = player.Position;
+            playerCamera._pos = camPos;
+
             FPSM.Update();
             base.Update(gameTime);
 
@@ -153,8 +158,6 @@ namespace ProjectArrow
 
 
                     player.Draw(spriteBatch);
-                    Vector2 camPos = player.Position;
-                    playerCamera._pos = camPos;
 
 
                 ObjectManager.DrawObjects();
@@ -168,17 +171,17 @@ namespace ProjectArrow
 
             //Nested for loops to draw the grid ONLY FOR TESTING
             for (int row = 0; row < 25; row++)
+            {
+                for (int col = 0; col < 25; col++)
                 {
-                    for (int col = 0; col < 25; col++)
-                    {
-                        // Calculate the position for each tile
-                        int x = col * GameData.ObjectTileSize;
-                        int y = row * GameData.ObjectTileSize;
+                    // Calculate the position for each tile
+                    int x = col * GameData.ObjectTileSize;
+                    int y = row * GameData.ObjectTileSize;
 
-                        // Draw the Battery tile at the calculated position
-                        spriteBatch.Draw(GameData.ObjectAtlas, new Vector2(x, y), GameData.ObjectMap["Grass"], Color.Gray, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
-                    }
+                    // Draw the Battery tile at the calculated position
+                    spriteBatch.Draw(GameData.ObjectAtlas, new Vector2(x, y), GameData.ObjectMap["Grass"], Color.Gray, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
                 }
+            }
 
 
             spriteBatch.End();

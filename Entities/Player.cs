@@ -119,7 +119,7 @@ namespace ProjectArrow
 
         public void Draw(SpriteBatch _spriteBatch)
         {
-            Vector2.Round(_position);
+            //Vector2.Round(_position);
 
             _playerAnim.Draw(_spriteBatch, _position, _depth, Color.White);
 
