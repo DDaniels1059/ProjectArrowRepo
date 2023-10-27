@@ -19,11 +19,9 @@ namespace ProjectArrow
         private Vector2 _position;
         private Vector2 _lastPosition;
         private Vector2 _origin;
-        private float _speed = 0.1f;
+        private float _speed = 110.0f;
         private float _depth;
         private bool _isMoving = false;
-
-        private Vector2 targetPos;
 
         private SpriteAnimation[] _animations = new SpriteAnimation[4];
         public Vector2 Position { get { return _position; } private set { _position = value; } }
@@ -115,13 +113,12 @@ namespace ProjectArrow
                     break;
                 }
             }
+
         }
 
         public void Draw(SpriteBatch _spriteBatch)
         {
-            //Vector2.Round(_position);
-
-            _playerAnim.Draw(_spriteBatch, _position, _depth, Color.White);
+            _playerAnim.Draw(_spriteBatch, new Vector2((int)Position.X, (int)Position.Y), _depth, Color.White);
 
             if (GameData.IsDebug)
             {
