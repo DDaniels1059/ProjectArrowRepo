@@ -26,7 +26,7 @@ namespace ProjectArrow.Utility
         public float Zoom
         {
             get { return _zoom; }
-            set { _zoom = value; if (_zoom < 0.1f) _zoom = 0.1f; } 
+            set { _zoom = value; if (_zoom < 1f) _zoom = 1f; } 
         }
 
         public float Rotation
@@ -49,11 +49,9 @@ namespace ProjectArrow.Utility
         //Testing A Simpler way to update cam
         public void Follow(Vector2 followPos)
         {
-            var position = Matrix.CreateTranslation(-followPos.X - (GameData.PlayerSize / 2), -followPos.Y - (GameData.PlayerSize / 2), 0);
+            var position = new Vector2(-followPos.X - (GameData.PlayerSize / 2), -followPos.Y - (GameData.PlayerSize / 2));
 
-            var offset = Matrix.CreateTranslation(ScreenManager.ScreenWidth * 0.25f, ScreenManager.ScreenHeight * 0.25f, 0);
-
-            _transform = position *  offset;
+            _pos = position;
         }
 
         public Vector2 ScreenToCamera(Vector2 screenPosition)

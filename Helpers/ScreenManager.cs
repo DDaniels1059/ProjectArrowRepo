@@ -29,7 +29,7 @@ namespace ProjectArrow.Helpers
             Window = window;
             Game = game;
 
-            worldRenderTarget = new RenderTarget2D(Graphics.GraphicsDevice, VirtualWidth, VirtualHeight);
+            worldRenderTarget = new RenderTarget2D(Graphics.GraphicsDevice, VirtualWidth + 2, VirtualHeight + 2);
 
             Graphics.DeviceCreated += OnGraphicsDeviceCreated;
             Graphics.DeviceReset += OnGraphicsDeviceReset;
@@ -74,7 +74,8 @@ namespace ProjectArrow.Helpers
         public static void SetHZ(float hz)
         {
             GameData.CurrentHz = (int)hz;
-            Game.TargetElapsedTime = TimeSpan.FromTicks((long)(TimeSpan.TicksPerSecond / hz));
+            double temp = (1000d / (double)hz) * 10000d;
+            Game.TargetElapsedTime = new TimeSpan((long)temp);
             Graphics.ApplyChanges();
         }
 
@@ -117,10 +118,8 @@ namespace ProjectArrow.Helpers
             float scaleX = ScreenWidth / VirtualWidth;
             float scaleY = ScreenHeight / VirtualHeight;
 
-             scale = Math.Max((int)Math.Ceiling(scaleX), (int)Math.Ceiling(scaleY));
+            scale = Math.Max((int)Math.Ceiling(scaleX), (int)Math.Ceiling(scaleY));
 
-            //if (scale <= 1)
-            //    scale = 2; // Ensure a minimum scale of 2
 
             // Update the view dimensions based on the calculated scale
             viewWidth = VirtualWidth * scale;

@@ -19,7 +19,7 @@ namespace ProjectArrow
         private Vector2 _position;
         private Vector2 _lastPosition;
         private Vector2 _origin;
-        private float _speed = 110.0f;
+        private float _speed = 60.0f;
         private float _depth;
         private bool _isMoving = false;
 
@@ -35,7 +35,7 @@ namespace ProjectArrow
             _animations[3] = new SpriteAnimation(GameData.PlayerAtlas, GameData.PlayerMap, "PlayerRight", 4, 8);
             _playerAnim = _animations[0];
             _collider = new Rectangle(0,0,GameData.PlayerSize / 2, GameData.PlayerSize / 4);
-            _position = new Vector2(660, 765);
+            _position = new Vector2(600, 550);
         }
 
         public void Update(GameTime gameTime, float deltaTime, InputManager inputHelper)
@@ -118,7 +118,7 @@ namespace ProjectArrow
 
         public void Draw(SpriteBatch _spriteBatch)
         {
-            _playerAnim.Draw(_spriteBatch, new Vector2((int)Position.X, (int)Position.Y), _depth, Color.White);
+            _playerAnim.Draw(_spriteBatch, new Vector2((int)_position.X, (int)_position.Y), _depth, Color.White);
 
             if (GameData.IsDebug)
             {

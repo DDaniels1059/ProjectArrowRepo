@@ -37,8 +37,8 @@ namespace ProjectArrow.Helpers
         public static void LoadData(ContentManager content, GraphicsDevice graphicsDevice)
         {
             UITileSize = 16;
-            PlayerSize = 32;
-            ObjectTileSize = 32;
+            PlayerSize = 16;
+            ObjectTileSize = 16;
 
             IsDebug = false;
             IsPaused = false;
@@ -63,17 +63,17 @@ namespace ProjectArrow.Helpers
             PlayerMap = new Dictionary<string, Rectangle>
             {                                 //X  Y  Width         Height
                 ["PlayerUp"] = new Rectangle(0, 0, PlayerSize * 4, PlayerSize),
-                ["PlayerDown"] = new Rectangle(0, 32, PlayerSize * 4, PlayerSize),
-                ["PlayerRight"] = new Rectangle(0, 64, PlayerSize * 4, PlayerSize),
-                ["PlayerLeft"] = new Rectangle(0, 96, PlayerSize * 4, PlayerSize),
+                ["PlayerDown"] = new Rectangle(0, 16, PlayerSize * 4, PlayerSize),
+                ["PlayerRight"] = new Rectangle(0, 32, PlayerSize * 4, PlayerSize),
+                ["PlayerLeft"] = new Rectangle(0, 48, PlayerSize * 4, PlayerSize),
             };
 
             ObjectAtlas = content.Load<Texture2D>("Misc/ObjectAtlas");
             ObjectMap = new Dictionary<string, Rectangle>
             {                             //X  Y  Width           Height
                 ["Grass"] = new Rectangle(0, 0, ObjectTileSize, ObjectTileSize),
-                ["Box"] =  new Rectangle(32, 0, ObjectTileSize, ObjectTileSize),
-                ["Gear"] =    new Rectangle(64, 0, ObjectTileSize, ObjectTileSize)
+                ["Box"] =  new Rectangle(16, 0, ObjectTileSize, ObjectTileSize),
+                ["Gear"] =    new Rectangle(32, 0, ObjectTileSize, ObjectTileSize)
             };
 
             Pixel = new Texture2D(graphicsDevice, 1, 1);

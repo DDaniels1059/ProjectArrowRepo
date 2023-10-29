@@ -23,11 +23,6 @@ namespace ProjectArrow.UI
         // Set Zoom Display Text
         private readonly string[] ZoomString = new string[1] { " ZOOM x" + GameData.CurrentZoom.ToString() + " " };
 
-        // Set Hz Display Text
-        private readonly string[] HzString = new string[1] { " " + GameData.CurrentHz.ToString() + " Hz" + " "};
-        private int[] currentHz = new int[6] {60, 75, 120, 144, 165, 240 };
-        private int currentHzIndex;
-
 
         private List<Button> SettingsButtons;
         private int lastScreenWidthOffset;
@@ -41,22 +36,19 @@ namespace ProjectArrow.UI
         private LeftRightButton WindowButton;
         private LeftRightButton UIButton;
         private LeftRightButton ZoomButton;
-        private LeftRightButton HzButton;
 
         private TextButton DebugToggle;
         private TextButton VsyncToggle;
 
         public SettingsMenu(Camera2d camera)
         {
-            currentHzIndex = Array.IndexOf(currentHz, GameData.CurrentHz);
-
 
             ScreenWidthOffset = ((int)ScreenManager.ScreenWidth / 2) - (BackDropWidth / 2);
             ScreenHeightOffset = (int)ScreenManager.ScreenHeight + (170 * GameData.UIScale);
             lastScreenWidthOffset = ScreenWidthOffset;
             lastScreenHeightOffset = ScreenHeightOffset;
 
-            BackDrop = new Rectangle(ScreenWidthOffset, 0, BackDropWidth, (int)ScreenManager.ScreenHeight + 170);
+            BackDrop = new Rectangle(ScreenWidthOffset, 0, BackDropWidth, (int)ScreenManager.ScreenHeight + (170 * GameData.UIScale));
             SettingsButtons = new List<Button>();
 
             WindowButton = new(GameData.UIMap["LeftArrow"], GameData.UIMap["LeftArrowPressed"]);
@@ -72,12 +64,7 @@ namespace ProjectArrow.UI
             ZoomButton = new(GameData.UIMap["LeftArrow"], GameData.UIMap["LeftArrowPressed"]);
             ZoomButton.currOptionString = ZoomString[0];
             ZoomButton.UpdateButtonPosition((int)(ScreenManager.ScreenWidth / 2), 0);
-            ZoomButton.AddToList(SettingsButtons);
-
-            HzButton = new(GameData.UIMap["LeftArrow"], GameData.UIMap["LeftArrowPressed"]);
-            HzButton.currOptionString = HzString[0];
-            HzButton.UpdateButtonPosition((int)(ScreenManager.ScreenWidth / 2), 0);
-            HzButton.AddToList(SettingsButtons);    
+            ZoomButton.AddToList(SettingsButtons); 
 
             DebugToggle = new TextButton(GameData.UIMap["DebugButton"], GameData.UIMap["DebugButtonPressed"], true, " DEBUG ");
             DebugToggle.AddToList(SettingsButtons);
@@ -165,7 +152,6 @@ namespace ProjectArrow.UI
                 WindowButton.DrawString(_spriteBatch);
                 ZoomButton.DrawString(_spriteBatch);
                 UIButton.DrawString(_spriteBatch);
-                HzButton.DrawString(_spriteBatch);
                 VsyncToggle.DrawString(_spriteBatch);
                 DebugToggle.DrawString(_spriteBatch);
 
@@ -174,7 +160,6 @@ namespace ProjectArrow.UI
                     _spriteBatch.DrawHollowRect(UIButton.TextRectangle, Color.Red);
                     _spriteBatch.DrawHollowRect(WindowButton.TextRectangle, Color.Red);
                     _spriteBatch.DrawHollowRect(ZoomButton.TextRectangle, Color.Red);
-                    _spriteBatch.DrawHollowRect(HzButton.TextRectangle, Color.Red);
                     _spriteBatch.DrawHollowRect(VsyncToggle.TextRectangle, Color.Red);
                     _spriteBatch.DrawHollowRect(DebugToggle.TextRectangle, Color.Red);
                 }
@@ -289,34 +274,6 @@ namespace ProjectArrow.UI
         }
         #endregion
 
-        #region HZ Buttons
-        private void HZSelectionRightPress()
-        {
-            currentHzIndex++;
-            if (currentHzIndex > currentHz.Length - 1)
-                currentHzIndex = currentHz.Length - 1;
-            ChangeHZ();
-        }
-
-        private void HZSelectionLeftPress()
-        {
-            currentHzIndex--;
-            if (currentHzIndex < 0)
-                currentHzIndex = 0; // Wrap around to fullscreen
-            ChangeHZ();
-        }
-        private void ChangeHZ()
-        {
-            int selectedHz = currentHz[currentHzIndex]; // Get the selected Hz value from the array
-            GameData.CurrentHz = selectedHz;
-            HzString[0] = " " + GameData.CurrentHz.ToString() + " Hz" + " ";
-            HzButton.currOptionString = HzString[0];
-            ScreenManager.SetHZ(selectedHz);
-            CalculateButtons();
-            UpdateButtonForScroll();
-        }
-        #endregion
-
         #region Vysnc Toggle
         private void ToggleVsync()
         {
@@ -351,8 +308,7 @@ namespace ProjectArrow.UI
             WindowButton.UpdateButtonPosition(Num1, 10 * (int)GameData.UIScale);
             UIButton.UpdateButtonPosition(Num1, (int)WindowButton.TextRectangle.Bottom + (10 * (int)GameData.UIScale));
             ZoomButton.UpdateButtonPosition(Num1, (int)UIButton.TextRectangle.Bottom + (10 * (int)GameData.UIScale));
-            HzButton.UpdateButtonPosition(Num1, (int)ZoomButton.TextRectangle.Bottom + (10 * (int)GameData.UIScale));
-            VsyncToggle.UpdateButtonPosition(Num1, (int)HzButton.TextRectangle.Bottom + (20 * (int)GameData.UIScale), - 32 * GameData.UIScale);
+            VsyncToggle.UpdateButtonPosition(Num1, (int)ZoomButton.TextRectangle.Bottom + (20 * (int)GameData.UIScale), - 32 * GameData.UIScale);
             DebugToggle.UpdateButtonPosition(Num1, (int)VsyncToggle.TextRectangle.Bottom + (20 * (int)GameData.UIScale), -32 * GameData.UIScale);
         }
 
@@ -361,8 +317,7 @@ namespace ProjectArrow.UI
             WindowButton.UpdateButtonY(BackDrop.Y + 10 * (int)GameData.UIScale);
             UIButton.UpdateButtonY(WindowButton.TextRectangle.Bottom + (10 * (int)GameData.UIScale));
             ZoomButton.UpdateButtonY(UIButton.TextRectangle.Bottom + (10 * (int)GameData.UIScale));
-            HzButton.UpdateButtonY(ZoomButton.TextRectangle.Bottom + (10 * (int)GameData.UIScale));
-            VsyncToggle.UpdateButtonY(HzButton.TextRectangle.Bottom + (20 * (int)GameData.UIScale));
+            VsyncToggle.UpdateButtonY(ZoomButton.TextRectangle.Bottom + (20 * (int)GameData.UIScale));
             DebugToggle.UpdateButtonY(VsyncToggle.TextRectangle.Bottom + (20 * (int)GameData.UIScale));
         }
 
@@ -374,8 +329,6 @@ namespace ProjectArrow.UI
             UIButton.LeftButton.buttonPress = UIMinusPress;
             WindowButton.LeftButton.buttonPress =  WindowSelectionLeftPress;
             WindowButton.RightButton.buttonPress =  WindowSelectionRightPress;
-            HzButton.LeftButton.buttonPress = HZSelectionLeftPress;
-            HzButton.RightButton.buttonPress = HZSelectionRightPress;
             DebugToggle.Button.buttonPress += DebugPress;
             VsyncToggle.Button.buttonPress += ToggleVsync; 
         }

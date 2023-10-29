@@ -27,19 +27,19 @@ namespace ProjectArrow
         private SpriteAnimation[] _testAnimations = new SpriteAnimation[2];
         private SpriteAnimation _testAnim;
 
-        private Vector2 test = new Vector2(1100, 900);
+        private Vector2 test = new Vector2(700, 500);
 
-        private int _testIndex = 0;
         private Color testColor = Color.White;
+        Vector2 subPixelOffset;
+
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
             InactiveSleepTime = TimeSpan.Zero;
-            graphics.SynchronizeWithVerticalRetrace = false;
-            IsFixedTimeStep = true;
-            TargetElapsedTime = TimeSpan.FromTicks((long)(TimeSpan.TicksPerSecond / 60));         
+            double temp = (1000d / (double)60) * 10000d;
+            TargetElapsedTime = new TimeSpan((long)temp);
             graphics.ApplyChanges();
         }
 
@@ -54,10 +54,9 @@ namespace ProjectArrow
             ScreenManager.Initialize(graphics, Window, this);
             SpriteBatchExtensions.Initialize(GraphicsDevice);
             GameData.LoadData(Content, GraphicsDevice);
-
-            //Not The Best Way
-            //ScreenManager.SetHZ(GameData.CurrentHz);
             
+
+
             playerCamera.Zoom = GameData.CurrentZoom;
             spriteBatch = new SpriteBatch(GraphicsDevice);
             settingsMenu = new SettingsMenu(playerCamera);
@@ -65,8 +64,6 @@ namespace ProjectArrow
             player = new Player();
 
             ObjectManager.Initialize(spriteBatch);
-
-
 
             Battery batt1 = new Battery(new Vector2(700, 600));
             Battery batt2 = new Battery(new Vector2(500, 600));
@@ -81,16 +78,13 @@ namespace ProjectArrow
         protected override void Update(GameTime gameTime)
         {
             float deltatime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
             inputHelper.Update(playerCamera);
 
-
-            _testIndex += 1;
 
             if (inputHelper.IsKeyPress(Keys.C))
             {
                 GC.Collect();
-
-                _testIndex = 0;
             }
 
             if (!GameData.IsPaused)
@@ -100,13 +94,13 @@ namespace ProjectArrow
 
             player.Update(gameTime, deltatime, inputHelper);
 
-            float speed = 50.0f;
+            float speed = 40.0f;
 
             if (!testSwitch)
             {
                 _testAnim = _testAnimations[1];
 
-                if (test.X > 980)
+                if (test.X > 800)
                 {
                     testSwitch = true;
                 }
@@ -120,7 +114,7 @@ namespace ProjectArrow
             {
                 _testAnim = _testAnimations[0];
 
-                if (test.X < 535)
+                if (test.X < 300)
                 {
                     testSwitch = false;
                 }
@@ -138,21 +132,18 @@ namespace ProjectArrow
 
             settingsMenu.Update(inputHelper, deltatime);
 
-
-            //playerCamera.Follow(player.Position);
-
-
-            Vector2 camPos = new Vector2((int)player.Position.X + 8, (int)player.Position.Y + 8);
-            playerCamera._pos = camPos;
             if (gameTime.IsRunningSlowly)
             {
-                Debug.WriteLine("RunningSlow");
                 testColor = Color.Red;
             }
             else
             {
                 testColor = Color.White;
             }
+
+
+            Window.Title = "ProjectArrow" + " " + (GC.GetTotalMemory(false) / 1048576f).ToString("F") + " MB";
+
             FPSM.Update();
             base.Update(gameTime);
 
@@ -161,6 +152,9 @@ namespace ProjectArrow
         protected override void Draw(GameTime gameTime)
         {
             #region World Draw
+
+            subPixelOffset = player.Position - new Vector2((int)player.Position.X, (int)player.Position.Y);
+            playerCamera._pos = new Vector2(player.Position.X + 8, player.Position.Y + 8) - subPixelOffset;
 
             ScreenManager.WorldTargetBeginDraw();
 
@@ -179,7 +173,6 @@ namespace ProjectArrow
 
 
 
-            //Nested for loops to draw the grid ONLY FOR TESTING
             for (int row = 0; row < 50; row++)
             {
                 for (int col = 0; col < 50; col++)
@@ -204,19 +197,17 @@ namespace ProjectArrow
 
             spriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.AlphaBlend, SamplerState.PointClamp, null, null, null, null);
 
-                //Window.Title = "ProjectArrow" + " " + (GC.GetTotalMemory(false) / 1048576f).ToString("F") + " MB";
 
                 settingsMenu.Draw(spriteBatch);
 
-                //if (GameData.IsDebug)
-                //{
-                    spriteBatch.DrawString(GameData.GameFont, "CameraPos: " + (playerCamera._pos.X).ToString() + " " + (playerCamera._pos.Y).ToString(), new Vector2(10, (int)1 * (GameData.UIScale)), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);
-                    spriteBatch.DrawString(GameData.GameFont, "PlayerPos: " + (player.Position.X).ToString() + " " + (player.Position.Y).ToString(), new Vector2(10, (int)20 * (GameData.UIScale)), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);
-                    //spriteBatch.DrawString(GameData.GameFont, "WorldPos: " + ((int)inputHelper.WorldMousePosition.X).ToString() + " " + ((int)inputHelper.WorldMousePosition.Y).ToString(), new Vector2(10, (int)40 * (GameData.UIScale)), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);
-                    //spriteBatch.DrawString(GameData.GameFont, "ScreenPos: " + ((int)inputHelper.ScreenMousePosition.X).ToString() + " " + ((int)inputHelper.ScreenMousePosition.Y).ToString(), new Vector2(10, (int)50 * (GameData.UIScale)), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);
-                    FPSM.Draw(spriteBatch, GameData.GameFont, new Vector2(10, (int)60 * (GameData.UIScale)), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);
-                    spriteBatch.DrawString(GameData.GameFont, "Test Increment: " + (_testIndex).ToString() , new Vector2(10, (int)70 * (GameData.UIScale)), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);              
-                //}
+            if (GameData.IsDebug)
+            {
+                spriteBatch.DrawString(GameData.GameFont, "CameraPos: " + (playerCamera._pos.X).ToString() + " " + (playerCamera._pos.Y).ToString(), new Vector2(10, (int)1 * (GameData.UIScale)), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);
+                spriteBatch.DrawString(GameData.GameFont, "PlayerPos: " + (player.Position.X).ToString() + " " + (player.Position.Y).ToString(), new Vector2(10, (int)20 * (GameData.UIScale)), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);
+                spriteBatch.DrawString(GameData.GameFont, "WorldPos: " + ((int)inputHelper.WorldMousePosition.X).ToString() + " " + ((int)inputHelper.WorldMousePosition.Y).ToString(), new Vector2(10, (int)40 * (GameData.UIScale)), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);
+                spriteBatch.DrawString(GameData.GameFont, "ScreenPos: " + ((int)inputHelper.ScreenMousePosition.X).ToString() + " " + ((int)inputHelper.ScreenMousePosition.Y).ToString(), new Vector2(10, (int)60 * (GameData.UIScale)), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);
+                FPSM.Draw(spriteBatch, GameData.GameFont, new Vector2(10, (int)80 * (GameData.UIScale)), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);
+            }
 
             spriteBatch.End();
 
