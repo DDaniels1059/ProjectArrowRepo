@@ -33,9 +33,8 @@ namespace ProjectArrow.System
                 Settings settings = new()
                 {
                     UIScale = 2,
-                    Zoom = 1,
-                    Vsync = false,
-                    Hz = 60
+                    Zoom = 2,
+                    Vsync = false
                 };
 
                 using (FileStream fs = new FileStream(saveFilePath, FileMode.CreateNew))
@@ -63,11 +62,9 @@ namespace ProjectArrow.System
             {
                 UIScale = GameData.UIScale,
                 Zoom = GameData.CurrentZoom,
-                Vsync = GameData.AllowVysnc,
-                Hz = GameData.CurrentHz
+                Vsync = GameData.AllowVysnc
             };
 
-            // Use a using statement to create and manage the FileStream
             using (FileStream fs = new FileStream(saveFilePath, FileMode.Create, FileAccess.Write))
             {
                 var jsonString = JsonSerializer.Serialize(settings, _options);

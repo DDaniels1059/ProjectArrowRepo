@@ -11,6 +11,5 @@ namespace ProjectArrow.System
         public int UIScale { get; set; }
         public int Zoom { get; set; }
         public bool Vsync { get; set; }
-        public int Hz { get; set; }
     }
 }

@@ -20,7 +20,7 @@ namespace ProjectArrow.UI
         private bool _isToggle = false;
         private bool _isAnchoredRight = false;
         private bool _toggled = false;
-        private float _timer = 100;
+        private float _timer = 5;
 
         public delegate void onPress();
         public onPress buttonPress;
@@ -141,11 +141,11 @@ namespace ProjectArrow.UI
 
             if (_isPressed)
             {
-                _timer -= 0.5f * DeltaTime;
+                _timer -= 20f * DeltaTime;
                 if (_timer <= 0)
                 {
                     _isPressed = false;
-                    _timer = 100;
+                    _timer = 5;
                     //Button Released
                 }
             }

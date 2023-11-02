@@ -14,8 +14,9 @@ namespace ProjectArrow.Utility
         public float Rotation = 0f;
         public float Scale = 1f;
         public SpriteEffects SpriteEffect;
+        public int FrameIndex = 0;
+
         protected Rectangle[] Rectangles;
-        protected int FrameIndex = 0;
         public string SpriteName { get; }
 
 
@@ -61,6 +62,14 @@ namespace ProjectArrow.Utility
             }
         }
 
+        public void Draw(SpriteBatch spriteBatch, Vector2 position, float Depth, SpriteEffects spriteEffect)
+        {
+            if (SpriteName != null && Rectangles.Length > 0)
+            {
+                spriteBatch.Draw(TextureAtlas, position, Rectangles[FrameIndex], Color, Rotation, Origin, Scale, spriteEffect, Depth);
+            }
+        }
+
         public void Draw(SpriteBatch spriteBatch, float depth, float rotation)
         {
             if (SpriteName != null && Rectangles.Length > 0)
@@ -78,8 +87,9 @@ namespace ProjectArrow.Utility
 
         public int FramesPerSecond { set { _timeToUpdate = 1f / value; } }
 
-        public SpriteAnimation(Texture2D TextureAtlas, Dictionary<string, Rectangle> TextureMap, string SpriteName, int frames, int fps) : base(TextureAtlas, TextureMap, SpriteName, frames)
+        public SpriteAnimation(Texture2D TextureAtlas, Dictionary<string, Rectangle> TextureMap, string SpriteName, int frames, int fps, bool IsLooping = true) : base(TextureAtlas, TextureMap, SpriteName, frames)
         {
+            this.IsLooping = IsLooping;
             FramesPerSecond = fps;
         }
 

@@ -23,13 +23,16 @@ namespace ProjectArrow.Helpers
         private static Rectangle worldDestination;
         private static float scale;
 
+        private static Color backGround;
+
         public static void Initialize(GraphicsDeviceManager graphics, GameWindow window, Game game)
         {
             Graphics = graphics;
             Window = window;
             Game = game;
 
-            worldRenderTarget = new RenderTarget2D(Graphics.GraphicsDevice, VirtualWidth, VirtualHeight);
+            backGround = new Color(91, 110, 225);
+            worldRenderTarget = new RenderTarget2D(Graphics.GraphicsDevice, VirtualWidth, VirtualHeight, false, Graphics.GraphicsDevice.PresentationParameters.BackBufferFormat, DepthFormat.None);
 
             Graphics.DeviceCreated += OnGraphicsDeviceCreated;
             Graphics.DeviceReset += OnGraphicsDeviceReset;
@@ -71,13 +74,6 @@ namespace ProjectArrow.Helpers
             }
         }
 
-        public static void SetHZ(float hz)
-        {
-            GameData.CurrentHz = (int)hz;
-            Game.TargetElapsedTime = TimeSpan.FromTicks((long)(TimeSpan.TicksPerSecond / hz));
-            Graphics.ApplyChanges();
-        }
-
         public static void SetFullscreen()
         {
             Graphics.PreferredBackBufferWidth = Graphics.GraphicsDevice.Adapter.CurrentDisplayMode.Width;
@@ -117,10 +113,8 @@ namespace ProjectArrow.Helpers
             float scaleX = ScreenWidth / VirtualWidth;
             float scaleY = ScreenHeight / VirtualHeight;
 
-             scale = Math.Max((int)Math.Ceiling(scaleX), (int)Math.Ceiling(scaleY));
+            scale = Math.Max((int)Math.Ceiling(scaleX), (int)Math.Ceiling(scaleY));
 
-            //if (scale <= 1)
-            //    scale = 2; // Ensure a minimum scale of 2
 
             // Update the view dimensions based on the calculated scale
             viewWidth = VirtualWidth * scale;
@@ -140,13 +134,13 @@ namespace ProjectArrow.Helpers
         public static void WorldTargetBeginDraw()
         {
             Graphics.GraphicsDevice.SetRenderTarget(worldRenderTarget);
-            Graphics.GraphicsDevice.Clear(Color.Gray);
+            Graphics.GraphicsDevice.Clear(backGround);
         }
 
         public static void EndTargetDraws(SpriteBatch _spriteBatch)
         {
             Graphics.GraphicsDevice.SetRenderTarget(null);
-            _spriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.AlphaBlend, SamplerState.PointClamp, null, null, null, null);
+            _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointClamp, null, null, null, null);
             _spriteBatch.Draw(worldRenderTarget, worldDestination, Color.White);
             _spriteBatch.End();
         }

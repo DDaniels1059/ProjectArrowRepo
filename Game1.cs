@@ -7,8 +7,6 @@ using ProjectArrow.System;
 using ProjectArrow.UI;
 using ProjectArrow.Utility;
 using System;
-using System.Diagnostics;
-using System.Threading;
 
 namespace ProjectArrow
 {
@@ -19,32 +17,31 @@ namespace ProjectArrow
         private SpriteBatch spriteBatch;
         private InputManager inputHelper;
         private SettingsMenu settingsMenu;
-        private Camera2d playerCamera = new Camera2d();
+        private Camera2d playerCamera;
         private Player player;
 
+        private TileMapManager tileMapManager = new TileMapManager();
 
         private bool testSwitch = false;
-        private SpriteAnimation[] _testAnimations = new SpriteAnimation[2];
         private SpriteAnimation _testAnim;
+        private SpriteAnimation[] _testAnimArray;
+        private Vector2 test = new Vector2(1440, 870);
+        private float Timer = 30;
 
-        private Vector2 test = new Vector2(1100, 900);
-
-        private int _testIndex = 0;
         private Color testColor = Color.White;
+
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
             InactiveSleepTime = TimeSpan.Zero;
-            graphics.SynchronizeWithVerticalRetrace = false;
-            IsFixedTimeStep = true;
-            TargetElapsedTime = TimeSpan.FromTicks((long)(TimeSpan.TicksPerSecond / 60));         
             graphics.ApplyChanges();
         }
 
         protected override void Initialize()
         {
+            GraphicsDevice.SamplerStates[0] = SamplerState.PointClamp;
             base.Initialize();
         }
 
@@ -54,43 +51,39 @@ namespace ProjectArrow
             ScreenManager.Initialize(graphics, Window, this);
             SpriteBatchExtensions.Initialize(GraphicsDevice);
             GameData.LoadData(Content, GraphicsDevice);
+            tileMapManager.LoadContent(Content);
 
-            //Not The Best Way
-            //ScreenManager.SetHZ(GameData.CurrentHz);
-            
-            playerCamera.Zoom = GameData.CurrentZoom;
-            spriteBatch = new SpriteBatch(GraphicsDevice);
-            settingsMenu = new SettingsMenu(playerCamera);
+
             inputHelper = new InputManager();
+            spriteBatch = new SpriteBatch(GraphicsDevice);
+            playerCamera = new Camera2d();
+            settingsMenu = new SettingsMenu(playerCamera);
             player = new Player();
 
             ObjectManager.Initialize(spriteBatch);
 
+            Battery batt1 = new Battery(new Vector2(750, 600));
+            Battery batt2 = new Battery(new Vector2(800, 600));
+            Battery batt3 = new Battery(new Vector2(850, 600));
+            Battery batt4 = new Battery(new Vector2(900, 600));
 
-
-            Battery batt1 = new Battery(new Vector2(700, 600));
-            Battery batt2 = new Battery(new Vector2(500, 600));
-            Battery batt3 = new Battery(new Vector2(600, 600));
-            Battery batt4 = new Battery(new Vector2(800, 600));
-
-            _testAnimations[0] = new SpriteAnimation(GameData.PlayerAtlas, GameData.PlayerMap, "PlayerLeft", 4, 5);
-            _testAnimations[1] = new SpriteAnimation(GameData.PlayerAtlas, GameData.PlayerMap, "PlayerRight", 4, 5);
-            _testAnim = _testAnimations[0];
+            _testAnimArray = new SpriteAnimation[2];
+            _testAnimArray[0] = new SpriteAnimation(GameData.PlayerFishAtlas, GameData.PlayerFishMap, "FishLeft", 3, 6, false);
+            _testAnimArray[1] = new SpriteAnimation(GameData.PlayerAtlas, GameData.PlayerMap, "PlayerRight", 4, 5);
+            _testAnim = _testAnimArray[1];
         }
 
         protected override void Update(GameTime gameTime)
         {
             float deltatime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
             inputHelper.Update(playerCamera);
 
-
-            _testIndex += 1;
+            Timer -= deltatime * 10f;
 
             if (inputHelper.IsKeyPress(Keys.C))
             {
                 GC.Collect();
-
-                _testIndex = 0;
             }
 
             if (!GameData.IsPaused)
@@ -100,37 +93,15 @@ namespace ProjectArrow
 
             player.Update(gameTime, deltatime, inputHelper);
 
-            float speed = 50.0f;
 
-            if (!testSwitch)
+
+            tileMapManager.Update(gameTime);
+
+            if (inputHelper.IsKeyPress(Keys.F))
             {
-                _testAnim = _testAnimations[1];
-
-                if (test.X > 980)
-                {
-                    testSwitch = true;
-                }
-                else
-                {
-                    test.X += speed * deltatime;
-                }
+                player.state = Player.State.Fishing;
             }
 
-            if (testSwitch)
-            {
-                _testAnim = _testAnimations[0];
-
-                if (test.X < 535)
-                {
-                    testSwitch = false;
-                }
-                else
-                {
-                    test.X -= speed * deltatime;
-                }
-            }
-
-                
             _testAnim.Position.X = test.X;
             _testAnim.Position.Y = test.Y;
             _testAnim.Update(gameTime);
@@ -138,21 +109,23 @@ namespace ProjectArrow
 
             settingsMenu.Update(inputHelper, deltatime);
 
-
-            //playerCamera.Follow(player.Position);
-
-
-            Vector2 camPos = new Vector2((int)player.Position.X + 8, (int)player.Position.Y + 8);
-            playerCamera._pos = camPos;
             if (gameTime.IsRunningSlowly)
             {
-                Debug.WriteLine("RunningSlow");
                 testColor = Color.Red;
             }
             else
             {
                 testColor = Color.White;
             }
+
+
+            Window.Title = "ProjectArrow" + " " + (GC.GetTotalMemory(false) / 1048576f).ToString("F") + " MB";
+
+            if (GameData.ExitGame)
+            {
+                this.Exit();
+            }
+
             FPSM.Update();
             base.Update(gameTime);
 
@@ -161,37 +134,18 @@ namespace ProjectArrow
         protected override void Draw(GameTime gameTime)
         {
             #region World Draw
+            playerCamera.Follow(player.Position);
 
             ScreenManager.WorldTargetBeginDraw();
 
             spriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.AlphaBlend, SamplerState.PointClamp, null, null, null, transformMatrix: playerCamera.get_transformation(GraphicsDevice));
 
-            spriteBatch.DrawFilledRect(new Rectangle(500, 700, 32, 32), testColor);
             player.Draw(spriteBatch);
-
-
             ObjectManager.DrawObjects();
                 
-            _testAnim.Draw(spriteBatch, new Vector2(test.X, test.Y - 20), 1f, Color.DarkGreen);
-            _testAnim.Draw(spriteBatch, new Vector2(test.X, test.Y + 120), 1f, Color.Crimson);
-            _testAnim.Draw(spriteBatch, new Vector2(test.X, test.Y + 70), 1f, Color.CornflowerBlue);
-            _testAnim.Draw(spriteBatch, new Vector2(test.X, test.Y + 35), 1f, Color.BlueViolet);
+            _testAnim.Draw(spriteBatch, new Vector2(test.X, test.Y), 1f, Color.White);
 
-
-
-            //Nested for loops to draw the grid ONLY FOR TESTING
-            for (int row = 0; row < 50; row++)
-            {
-                for (int col = 0; col < 50; col++)
-                {
-                    // Calculate the position for each tile
-                    int x = col * GameData.ObjectTileSize;
-                    int y = row * GameData.ObjectTileSize;
-
-                    // Draw the Battery tile at the calculated position
-                    spriteBatch.Draw(GameData.ObjectAtlas, new Vector2(x, y), GameData.ObjectMap["Grass"], Color.Gray, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
-                }
-            }
+            tileMapManager.Draw(spriteBatch);
 
 
             spriteBatch.End();
@@ -204,54 +158,20 @@ namespace ProjectArrow
 
             spriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.AlphaBlend, SamplerState.PointClamp, null, null, null, null);
 
-                //Window.Title = "ProjectArrow" + " " + (GC.GetTotalMemory(false) / 1048576f).ToString("F") + " MB";
 
-                settingsMenu.Draw(spriteBatch);
+            settingsMenu.Draw(spriteBatch);
 
-                //if (GameData.IsDebug)
-                //{
-                    spriteBatch.DrawString(GameData.GameFont, "CameraPos: " + (playerCamera._pos.X).ToString() + " " + (playerCamera._pos.Y).ToString(), new Vector2(10, (int)1 * (GameData.UIScale)), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);
-                    spriteBatch.DrawString(GameData.GameFont, "PlayerPos: " + (player.Position.X).ToString() + " " + (player.Position.Y).ToString(), new Vector2(10, (int)20 * (GameData.UIScale)), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);
-                    //spriteBatch.DrawString(GameData.GameFont, "WorldPos: " + ((int)inputHelper.WorldMousePosition.X).ToString() + " " + ((int)inputHelper.WorldMousePosition.Y).ToString(), new Vector2(10, (int)40 * (GameData.UIScale)), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);
-                    //spriteBatch.DrawString(GameData.GameFont, "ScreenPos: " + ((int)inputHelper.ScreenMousePosition.X).ToString() + " " + ((int)inputHelper.ScreenMousePosition.Y).ToString(), new Vector2(10, (int)50 * (GameData.UIScale)), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);
-                    FPSM.Draw(spriteBatch, GameData.GameFont, new Vector2(10, (int)60 * (GameData.UIScale)), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);
-                    spriteBatch.DrawString(GameData.GameFont, "Test Increment: " + (_testIndex).ToString() , new Vector2(10, (int)70 * (GameData.UIScale)), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);              
-                //}
+            if (GameData.IsDebug)
+            {
+                spriteBatch.DrawString(GameData.GameFont, "CameraPos: " + (playerCamera._pos.X).ToString() + " " + (playerCamera._pos.Y).ToString(), new Vector2(10, (int)1 * (GameData.UIScale)), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);
+                spriteBatch.DrawString(GameData.GameFont, "PlayerPos: " + (player.Position.X).ToString() + " " + (player.Position.Y).ToString(), new Vector2(10, (int)20 * (GameData.UIScale)), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);
+                spriteBatch.DrawString(GameData.GameFont, "WorldPos: " + ((int)inputHelper.WorldMousePosition.X).ToString() + " " + ((int)inputHelper.WorldMousePosition.Y).ToString(), new Vector2(10, (int)40 * (GameData.UIScale)), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);
+                spriteBatch.DrawString(GameData.GameFont, "ScreenPos: " + ((int)inputHelper.ScreenMousePosition.X).ToString() + " " + ((int)inputHelper.ScreenMousePosition.Y).ToString(), new Vector2(10, (int)60 * (GameData.UIScale)), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);
+                FPSM.Draw(spriteBatch, GameData.GameFont, new Vector2(10, (int)80 * (GameData.UIScale)), Color.White, 0f, Vector2.Zero, GameData.UIScale, SpriteEffects.None, .4f);
+            }
 
             spriteBatch.End();
-
-            //int width = (int)(64 * GameData.UIScale);
-            //int height = (int)(64 * GameData.UIScale);
-
-            //Rectangle rect = new Rectangle((int)(ScreenManager.ScreenWidth - (width) - 32), (int)(20 * (GameData.UIScale * 2) - height / 2), width, height);
-
-            //spriteBatch.DrawHollowRect(rect, Color.Red);
-
-
-            //spriteBatch.DrawFilledRect(rect, Color.Green);
-
-            //Rectangle rect2 = new Rectangle((int)(32), (int)(20 * (GameData.UIScale * 2) - height / 2), width, height);
-
-            //spriteBatch.DrawFilledRect(rect2, Color.Green);
-
-            //Rectangle rect3 = new Rectangle((int)(32), (int)(ScreenManager.ScreenHeight - 20 * (GameData.UIScale * 2) - height / 2), width, height);
-
-            //spriteBatch.DrawFilledRect(rect3, Color.Green);
-
-
-            //Rectangle rect4 = new Rectangle((int)(ScreenManager.ScreenWidth - (width) - 32), (int)(ScreenManager.ScreenHeight - 20 * (GameData.UIScale * 2) - height / 2), width, height);
-
-            //spriteBatch.DrawFilledRect(rect4, Color.Green);
-
-            //string textToCenter = "Paused";
-            //float textSize = (int)GameData.GameFont.MeasureString(textToCenter).X * (GameData.UIScale * 2);
-
-            //// Pause Text
-            //if (GameData.IsPaused || !Active)
-            //{
-            //    spriteBatch.DrawString(GameData.GameFont, textToCenter, new Vector2((int)(graphics.PreferredBackBufferWidth / 2) - (textSize / 2) + 6, (graphics.PreferredBackBufferHeight) - 130), Color.Black, 0f, Vector2.Zero, GameData.UIScale * 2, SpriteEffects.None, 1f);
-            //}
-
+            
             #endregion
 
             base.Draw(gameTime);
